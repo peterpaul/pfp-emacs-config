@@ -1,16 +1,54 @@
 * Initialize configuration
+** Use lexical binding
+
+#+BEGIN_SRC emacs-lisp
+;;; -*- lexical-binding: t; -*-
+#+END_SRC
+
+** Upon startup, write message with startup details
+
+#+BEGIN_SRC emacs-lisp
+(add-hook 'emacs-startup-hook
+ (lambda ()
+  (message "Emacs ready in %s with %d garbage collections."
+   (format "%.2f seconds"
+    (float-time
+     (time-subtract after-init-time before-init-time)))
+   gcs-done)))
+#+END_SRC
+
+** Temporarily change garbage collection settings, and disable file-name-handler
+
+#+BEGIN_SRC emacs-lisp
+(let ((gc-cons-threshold-backup gc-cons-threshold)
+      (gc-cons-percentage-backup gc-cons-percentage)
+      file-name-handler-alist-backup file-name-handler-alist)
+  ;; Change garbage collector settings and file-name-handler
+  (setq gc-cons-threshold 402653184
+	gc-cons-percentage 0.6
+	file-name-handler-alist nil)
+  ;; Then restore it as late as possible
+  (add-hook 'emacs-startup-hook
+	    (lambda ()
+	      (message "Restored original settings")
+	      (setq gc-cons-threshold gc-cons-threshold-backup
+		    gc-cons-percentage gc-cons-percentage-backup
+		    file-name-handler-alist (append file-name-handler-alist-backup file-name-handler-alist)))))
+#+END_SRC
+
 ** Configure `custom-file'
 
-Do not use `init.el' for `custom-*' code - use `custom-file.el'.
+Do not use `init.el' for `custom-*' code - use `custom.el'.
 #+BEGIN_SRC emacs-lisp
-(setq custom-file "~/.emacs.d/custom.el")
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 #+END_SRC
 
 Assuming that the code in custom-file is executed before the code
 ahead of this line is not a safe assumption. So load this file
 proactively.
 #+BEGIN_SRC emacs-lisp
-(load-file custom-file)
+(when (file-exists-p custom-file)
+  (load custom-file))
 #+END_SRC
 
 ** Require and initialize `package'
@@ -46,7 +84,8 @@ Add `melpa' to `package-archives'
 
 #+BEGIN_SRC emacs-lisp
 (use-package restart-emacs
- :ensure t)
+ :ensure t
+ :defer t)
 #+END_SRC
 * Navigation
 
@@ -111,7 +150,8 @@ From [[https://github.com/seagle0128/doom-modeline]]
 *** Install `magit'
 #+BEGIN_SRC emacs-lisp
 (use-package magit
- :ensure t)
+ :ensure t
+ :defer t)
 #+END_SRC
 
 * EXWM
