@@ -84,7 +84,7 @@ Add `melpa' to `package-archives'
 ** Check whether a certain command exists
 
 #+BEGIN_SRC emacs-lisp
-(defun command-exists-p (command)
+(defun pfp-command-exists-p (command)
   "Checks whether COMMAND exists on this system.
 
 The existence of COMMAND is checked using =which COMMAND=. So this function
@@ -96,7 +96,7 @@ will only work on systems where the command =which= exists."
     (eq retval 0)))
 
 (require 'memoize)
-(memoize 'command-exists-p)
+(memoize 'pfp-command-exists-p)
 #+END_SRC
 
 * Install `restart-emacs'
@@ -106,7 +106,80 @@ will only work on systems where the command =which= exists."
  :ensure t
  :defer t)
 #+END_SRC
+
 * Navigation
+** Install `counsel ivy and swiper'
+
+See: [[https://writequit.org/denver-emacs/presentations/2017-04-11-ivy.html]]
+
+Configuration from: [[https://github.com/abo-abo/swiper]]
+
+Some of these configurations depend on external software:
+
+- =ag=
+- =locate= (=mlocate= or =slocate=)
+- =rhythmbox=
+- =git=
+
+#+BEGIN_SRC emacs-lisp
+(use-package ivy
+  :ensure t
+  :config
+  (progn
+    (ivy-mode 1)
+    (setq ivy-use-virtual-buffers t)
+    (setq enable-recursive-minibuffers t)
+    (setq ivy-count-format "%d of %d - ")
+    ;; enable this if you want `swiper' to use it
+    ;; (setq search-default-mode #'char-fold-to-regexp)
+    (global-set-key (kbd "C-S-s") 'swiper)
+    (global-set-key (kbd "C-c C-r") 'ivy-resume)
+    (global-set-key (kbd "<f6>") 'ivy-resume)
+    ;; (global-set-key (kbd "M-x") 'counsel-M-x)
+    ;; (global-set-key (kbd "C-x C-f") 'counsel-find-file)
+    ;; (global-set-key (kbd "<f1> f") 'counsel-describe-function)
+    ;; (global-set-key (kbd "<f1> v") 'counsel-describe-variable)
+    (global-set-key (kbd "<f1> o") 'counsel-describe-symbol)
+    ;; (global-set-key (kbd "<f1> l") 'counsel-find-library)
+    ;; (global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
+    (global-set-key (kbd "<f2> u") 'counsel-unicode-char)
+    (global-set-key (kbd "C-c g") 'counsel-git)
+    (global-set-key (kbd "C-c j") 'counsel-git-grep)
+    (global-set-key (kbd "C-c k") 'counsel-ag)
+    (global-set-key (kbd "C-x l") 'counsel-locate)
+    (global-set-key (kbd "C-S-o") 'counsel-rhythmbox)
+    (define-key minibuffer-local-map (kbd "C-r") 'counsel-minibuffer-history)))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(use-package counsel
+  :ensure t
+  :after (ivy)
+  :config (counsel-mode 1))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(use-package counsel-tramp
+  :ensure t
+  :defer t
+  :after (counsel))
+#+END_SRC
+
+** Install `avy'
+
+#+BEGIN_SRC emacs-lisp
+(use-package avy
+  :ensure t
+  ;; :defer t
+  :bind (("C-:" . avy-goto-char)
+	 ("C-'" . avy-goto-char2)
+	 ("M-g f" . avy-goto-line)
+	 ("M-g w" . avy-goto-word-1)
+	 ("M-g e" . avy-goto-word-0)
+	 ("C-c C-j" . avy-resume))
+  :config
+  (avy-setup-default))
+#+END_SRC
 
 ** Install `treemacs'
 
@@ -124,9 +197,16 @@ will only work on systems where the command =which= exists."
  :if (display-graphic-p))
 (use-package all-the-icons-dired
  :ensure t
+ :after (all-the-icons)
  :if (display-graphic-p)
  :config
  (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
+(use-package all-the-icons-ivy
+ :ensure t
+ :after (all-the-icons ivy)
+ :if (display-graphic-p)
+ :config
+ (all-the-icons-ivy-setup))
 #+END_SRC
 
 ** Install `doom-themes'
@@ -172,7 +252,7 @@ From [[https://github.com/seagle0128/doom-modeline]]
 #+BEGIN_SRC emacs-lisp
 (use-package magit
  :ensure t
- :if (command-exists-p 'git)
+ :if (pfp-command-exists-p 'git)
  :defer t)
 #+END_SRC
 
@@ -300,4 +380,11 @@ From [[https://github.com/seagle0128/doom-modeline]]
   ;; System tray
   (require 'exwm-systemtray)
   (exwm-systemtray-enable)))
+#+END_SRC
+
+* End
+
+#+BEGIN_SRC emacs-lisp
+(provide 'pfp)
+;;; pfp ends here
 #+END_SRC
