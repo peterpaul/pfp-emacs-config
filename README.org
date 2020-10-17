@@ -76,8 +76,27 @@ Add `melpa' to `package-archives'
 
 #+BEGIN_SRC emacs-lisp
 (defun pfp-recompile-user-dir ()
+ "Recompile everything in the `package-user-dir'."
  (interactive)
  (byte-recompile-directory package-user-dir nil 'force))
+#+END_SRC
+
+** Check whether a certain command exists
+
+#+BEGIN_SRC emacs-lisp
+(defun command-exists-p (command)
+  "Checks whether COMMAND exists on this system.
+
+The existence of COMMAND is checked using =which COMMAND=. So this function
+will only work on systems where the command =which= exists."
+  (let ((buf    (get-buffer-create "command-exists-buffer"))
+        (retval nil))
+    (setq retval (shell-command (format "which '%s'" command)))
+    (kill-buffer buf)
+    (eq retval 0)))
+
+(require 'memoize)
+(memoize 'command-exists-p)
 #+END_SRC
 
 * Install `restart-emacs'
@@ -101,9 +120,11 @@ Add `melpa' to `package-archives'
 
 #+BEGIN_SRC emacs-lisp
 (use-package all-the-icons
- :ensure t)
+ :ensure t
+ :if (display-graphic-p))
 (use-package all-the-icons-dired
  :ensure t
+ :if (display-graphic-p)
  :config
  (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
 #+END_SRC
@@ -151,6 +172,7 @@ From [[https://github.com/seagle0128/doom-modeline]]
 #+BEGIN_SRC emacs-lisp
 (use-package magit
  :ensure t
+ :if (command-exists-p 'git)
  :defer t)
 #+END_SRC
 
