@@ -36,9 +36,9 @@
 		    file-name-handler-alist (append file-name-handler-alist-backup file-name-handler-alist)))))
 #+END_SRC
 
-** Configure `custom-file'
+** Configure =custom-file=
 
-Do not use `init.el' for `custom-*' code - use `custom.el'.
+Do not use =init.el= for =custom-*= code - use =custom.el=.
 #+BEGIN_SRC emacs-lisp
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 #+END_SRC
@@ -51,19 +51,19 @@ proactively.
   (load custom-file))
 #+END_SRC
 
-** Require and initialize `package'
+** Require and initialize =package=
 
 #+BEGIN_SRC emacs-lisp
 (require 'package)
 (package-initialize)
 #+END_SRC
 
-Add `melpa' to `package-archives'
+Add =melpa= to =package-archives=
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t)
 #+END_SRC
 
-** Install `use-package'
+** Install =use-package=
 
 #+BEGIN_SRC emacs-lisp
 (when (not (package-installed-p 'use-package))
@@ -72,6 +72,45 @@ Add `melpa' to `package-archives'
 #+END_SRC
 
 * Utility functions
+** Install =memoize=
+
+=memoize= is a great library that can memoize functions.
+
+For example the following code produces the output below.
+
+#+BEGIN_SRC elisp :results output session :exports both
+(defvar square-times-called 0)
+(defmemoize-by-buffer-contents square (x)
+  (setq square-times-called (+ square-times-called 1))
+  (print (format "Called `square' for the %d-th time." square-times-called))
+  (* x x))
+
+(print (square 6))
+(print (square 6))
+(print (square 5))
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+
+"Called `square' for the 1-th time."
+
+36
+
+36
+
+"Called `square' for the 2-th time."
+
+25
+#+end_example
+
+Memoize is used by some utility functions.
+
+#+BEGIN_SRC emacs-lisp
+(use-package memoize
+ :ensure t)
+#+END_SRC
+
 ** Recompile everything
 
 #+BEGIN_SRC emacs-lisp
@@ -84,7 +123,7 @@ Add `melpa' to `package-archives'
 ** Check whether a certain command exists
 
 #+BEGIN_SRC emacs-lisp
-(defun pfp-command-exists-p (command)
+(defmemoize pfp-command-exists-p (command)
   "Checks whether COMMAND exists on this system.
 
 The existence of COMMAND is checked using =which COMMAND=. So this function
@@ -94,12 +133,9 @@ will only work on systems where the command =which= exists."
     (setq retval (shell-command (format "which '%s'" command)))
     (kill-buffer buf)
     (eq retval 0)))
-
-(require 'memoize)
-(memoize 'pfp-command-exists-p)
 #+END_SRC
 
-* Install `restart-emacs'
+* Install =restart-emacs=
 
 #+BEGIN_SRC emacs-lisp
 (use-package restart-emacs
@@ -108,7 +144,7 @@ will only work on systems where the command =which= exists."
 #+END_SRC
 
 * Navigation
-** Install `counsel ivy and swiper'
+** Install =counsel ivy and swiper=
 
 See: [[https://writequit.org/denver-emacs/presentations/2017-04-11-ivy.html]]
 
@@ -165,7 +201,7 @@ Some of these configurations depend on external software:
   :after (counsel))
 #+END_SRC
 
-** Install `avy'
+** Install =avy=
 
 #+BEGIN_SRC emacs-lisp
 (use-package avy
@@ -181,7 +217,7 @@ Some of these configurations depend on external software:
   (avy-setup-default))
 #+END_SRC
 
-** Install `treemacs'
+** Install =treemacs=
 
 #+BEGIN_SRC emacs-lisp
 (use-package treemacs
@@ -189,7 +225,7 @@ Some of these configurations depend on external software:
 #+END_SRC
 
 * Appearance
-** Install `all-the-icons'
+** Install =all-the-icons=
 
 #+BEGIN_SRC emacs-lisp
 (use-package all-the-icons
@@ -209,7 +245,7 @@ Some of these configurations depend on external software:
  (all-the-icons-ivy-setup))
 #+END_SRC
 
-** Install `doom-themes'
+** Install =doom-themes=
 
 From [[https://github.com/hlissner/emacs-doom-themes]]
 
@@ -236,7 +272,7 @@ From [[https://github.com/hlissner/emacs-doom-themes]]
  (doom-themes-org-config))
 #+END_SRC
 
-** Install `doom-modeline'
+** Install =doom-modeline=
 
 From [[https://github.com/seagle0128/doom-modeline]]
 
@@ -248,7 +284,7 @@ From [[https://github.com/seagle0128/doom-modeline]]
 
 * Version Control
 ** Git
-*** Install `magit'
+*** Install =magit=
 #+BEGIN_SRC emacs-lisp
 (use-package magit
  :ensure t
@@ -256,8 +292,26 @@ From [[https://github.com/seagle0128/doom-modeline]]
  :defer t)
 #+END_SRC
 
+* Terminals
+** Install vterm
+
+#+BEGIN_SRC emacs-lisp
+(use-package vterm
+ :ensure t
+ :defer t)
+#+END_SRC
+
+* Org-mode
+** =htmlize=
+
+#+BEGIN_SRC emacs-lisp
+(use-package htmlize
+ :ensure t
+ :defer t)
+#+END_SRC
+
 * EXWM
-** Install `exwm'
+** Install =exwm=
 
 #+BEGIN_SRC emacs-lisp
 (use-package exwm
