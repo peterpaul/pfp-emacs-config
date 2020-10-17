@@ -36,6 +36,15 @@
 		    file-name-handler-alist (append file-name-handler-alist-backup file-name-handler-alist)))))
 #+END_SRC
 
+** Standard UI tweaks
+
+#+BEGIN_SRC emacs-lisp
+(display-battery-mode t)
+(display-time-mode t)
+(tool-bar-mode -1)
+(menu-bar-mode -1)
+#+END_SRC
+
 ** Configure =custom-file=
 
 Do not use =init.el= for =custom-*= code - use =custom.el=.
