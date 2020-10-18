@@ -1,11 +1,30 @@
+* PFP Emacs Configuration
+
+This is my literate Emacs configuration. All my Emacs configuration is embedded in this file as Emacs Lisp code blocks. To bootstrap this solution, my "regular" =init.el= file contains just a single line:
+
+#+BEGIN_SRC elisp
+(org-babel-load-file "~/.emacs.d/README.org")
+#+END_SRC
+
+The function =org-babel-load-file= extracts all Emacs Lisp code blocks into the file =README.el= and loads it.
+
+The advantage of this approach is that the whole configuration becomes an =org-mode= document, and the outline mode makes navigating the configuration easy.
+
 * Initialize configuration
+
+In this section we will initialize the Emacs configuration. We will optimize startup time, customize some global settings, initialize the package system and install =use-package=.
+
 ** Use lexical binding
+
+Configure the configuration file for lexical binding, as opposed to dynamic binding. Lexical binding is the behaviour that most developers actually expect.
 
 #+BEGIN_SRC emacs-lisp
 ;;; -*- lexical-binding: t; -*-
 #+END_SRC
 
 ** Upon startup, write message with startup details
+
+Install a startup hook that informs the user of the startup duration and the number of garbage collections.
 
 #+BEGIN_SRC emacs-lisp
 (add-hook 'emacs-startup-hook
@@ -18,6 +37,8 @@
 #+END_SRC
 
 ** Temporarily change garbage collection settings, and disable file-name-handler
+
+In order to optimize the startup time we will change the garbage collection settings during startup and restore the original settings after startup is done.
 
 #+BEGIN_SRC emacs-lisp
 (let ((gc-cons-threshold-backup gc-cons-threshold)
@@ -41,6 +62,7 @@
 #+BEGIN_SRC emacs-lisp
 (display-battery-mode t)
 (display-time-mode t)
+(scroll-bar-mode -1)
 (tool-bar-mode -1)
 (menu-bar-mode -1)
 #+END_SRC
@@ -48,13 +70,13 @@
 ** Configure =custom-file=
 
 Do not use =init.el= for =custom-*= code - use =custom.el=.
+
 #+BEGIN_SRC emacs-lisp
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 #+END_SRC
 
-Assuming that the code in custom-file is executed before the code
-ahead of this line is not a safe assumption. So load this file
-proactively.
+Assuming that the code in custom-file is executed before the code ahead of this line is not a safe assumption. So load this file proactively.
+
 #+BEGIN_SRC emacs-lisp
 (when (file-exists-p custom-file)
   (load custom-file))
@@ -67,7 +89,8 @@ proactively.
 (package-initialize)
 #+END_SRC
 
-Add =melpa= to =package-archives=
+*** Add =melpa= to =package-archives=
+
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t)
 #+END_SRC
@@ -120,7 +143,7 @@ Memoize is used by some utility functions.
  :ensure t)
 #+END_SRC
 
-** Recompile everything
+** =pfp-recompile-user-dir=
 
 #+BEGIN_SRC emacs-lisp
 (defun pfp-recompile-user-dir ()
@@ -129,7 +152,7 @@ Memoize is used by some utility functions.
  (byte-recompile-directory package-user-dir nil 'force))
 #+END_SRC
 
-** Check whether a certain command exists
+** =pfp-command-exists-p=
 
 #+BEGIN_SRC emacs-lisp
 (defmemoize pfp-command-exists-p (command)
@@ -226,14 +249,7 @@ Some of these configurations depend on external software:
   (avy-setup-default))
 #+END_SRC
 
-** Install =treemacs=
-
-#+BEGIN_SRC emacs-lisp
-(use-package treemacs
- :ensure t)
-#+END_SRC
-
-* Appearance
+* Look and Feel
 ** Install =all-the-icons=
 
 #+BEGIN_SRC emacs-lisp
@@ -291,6 +307,13 @@ From [[https://github.com/seagle0128/doom-modeline]]
  :init (doom-modeline-mode 1))
 #+END_SRC
 
+* File management
+** Install =treemacs=
+
+#+BEGIN_SRC emacs-lisp
+(use-package treemacs
+ :ensure t)
+#+END_SRC
 * Version Control
 ** Git
 *** Install =magit=
@@ -302,12 +325,15 @@ From [[https://github.com/seagle0128/doom-modeline]]
 #+END_SRC
 
 * Terminals
-** Install vterm
+** Install =vterm=
 
 #+BEGIN_SRC emacs-lisp
 (use-package vterm
  :ensure t
- :defer t)
+ :defer t
+ :init
+ (progn
+  (setq vterm-always-compile-module t)))
 #+END_SRC
 
 * Org-mode
@@ -325,6 +351,7 @@ From [[https://github.com/seagle0128/doom-modeline]]
 #+BEGIN_SRC emacs-lisp
 (use-package exwm
  :ensure t
+ :if (display-graphic-p)
  :config
  (progn
   ;; Turn on `display-time-mode' if you don't use an external bar.
