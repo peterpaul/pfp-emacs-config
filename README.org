@@ -249,6 +249,22 @@ Some of these configurations depend on external software:
   (avy-setup-default))
 #+END_SRC
 
+* Editing
+** =multiple-cursors=
+
+#+BEGIN_SRC emacs-lisp
+(use-package multiple-cursors
+  :ensure t
+  :defer t
+  :config
+  (progn
+    (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
+    (global-set-key (kbd "C->") 'mc/mark-next-like-this)
+    (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+    (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+    ))
+#+END_SRC
+
 * Look and Feel
 ** Install =all-the-icons=
 
@@ -307,21 +323,90 @@ From [[https://github.com/seagle0128/doom-modeline]]
  :init (doom-modeline-mode 1))
 #+END_SRC
 
+** Install =minimap=
+
+#+BEGIN_SRC emacs-lisp
+  ;; Minimap
+  (use-package minimap
+    :ensure t
+    :if (display-graphic-p)
+    :config
+    (global-set-key [f9] 'minimap-mode)
+    :init
+    (setq minimap-window-location 'right)
+    :custom-face
+    (minimap-active-region-background ((t (:background "#4C566A"))))
+    (minimap-current-line-face ((t (:background "#88C0D0" :foreground "#2E3440")))))
+#+END_SRC
+
+* System utilities
+** Silver searcher
+
+#+BEGIN_SRC emacs-lisp
+(use-package ag
+  :ensure t
+  :if (pfp-command-exists-p 'ag))
+#+END_SRC
+
+** Ripgrep
+
+#+BEGIN_SRC emacs-lisp
+(use-package ripgrep
+  :ensure t
+  :if (pfp-command-exists-p 'rg))
+(use-package rg
+  :ensure t
+  :if (pfp-command-exists-p 'rg))
+#+END_SRC
+
+*** TODO Investigate whether both are needed
+
 * File management
 ** Install =treemacs=
 
 #+BEGIN_SRC emacs-lisp
 (use-package treemacs
- :ensure t)
+ :ensure t
+ :config (global-set-key [f8] 'treemacs))
 #+END_SRC
 * Version Control
 ** Git
 *** Install =magit=
+
 #+BEGIN_SRC emacs-lisp
 (use-package magit
  :ensure t
  :if (pfp-command-exists-p 'git)
  :defer t)
+#+END_SRC
+
+*** Install =forge=
+
+#+BEGIN_SRC emacs-lisp
+(use-package forge
+  :ensure t
+  :if (pfp-command-exists-p 'git)
+  :after (magit))
+#+END_SRC
+
+* Project management
+** =projectile=
+
+#+BEGIN_SRC emacs-lisp
+(use-package projectile
+ :ensure t
+ :defer t)
+(use-package projectile-ripgrep
+  :ensure t
+  :defer t
+  :if (pfp-command-exists-p 'rg))
+(use-package term-projectile
+ :ensure t
+ :defer t)
+(use-package treemacs-projectile
+  :ensure t
+  :defer t
+  :after (treemacs projectile))
 #+END_SRC
 
 * Terminals
@@ -336,13 +421,112 @@ From [[https://github.com/seagle0128/doom-modeline]]
   (setq vterm-always-compile-module t)))
 #+END_SRC
 
-* Org-mode
-** =htmlize=
+* File type
+** =csv-mode=
 
 #+BEGIN_SRC emacs-lisp
-(use-package htmlize
+(use-package csv-mode
+  :ensure t
+  :config
+  (progn
+    (add-to-list 'auto-mode-alist '("\\.[Cc][Ss][Vv]\\'" . csv-mode))
+    ))
+#+END_SRC
+
+* Markup languages
+** Org-mode
+*** =htmlize=
+
+ #+BEGIN_SRC emacs-lisp
+ (use-package htmlize
+  :ensure t
+  :defer t)
+ #+END_SRC
+
+** Markdown
+
+ #+BEGIN_SRC emacs-lisp
+ (use-package markdown-mode
+  :ensure t)
+
+ (defun markdown-backward-inner-block ()
+   "Navigate back to the beginning of this block."
+   (markdown-backward-block)
+   (forward-line))
+
+ (defun markdown-forward-inner-block ()
+   "Navigate forward to the end of this block."
+   (markdown-forward-block)
+   (previous-line))
+
+ (defun markdown-narrow-inner-block ()
+   "Make text inside current block visible.
+ The current block is the one that contains point or follows point."
+   (interactive)
+   (let ((beginning-of-defun-function 'markdown-backward-inner-block)
+         (end-of-defun-function 'markdown-forward-inner-block))
+     (narrow-to-defun)))
+ #+END_SRC
+
+* Programming
+** Emacs Lisp
+
+#+BEGIN_SRC emacs-lisp
+(use-package rainbow-mode
+ :ensure t)
+(use-package rainbow-delimiters
+  :ensure t
+  :config
+  (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+(use-package highlight-defined
+  :ensure t
+  :config
+  (add-hook 'emacs-lisp-mode-hook 'highlight-defined-mode))
+(use-package smartparens
+  :ensure t
+  :config
+  (require 'smartparens-config))
+#+END_SRC
+
+** =lsp-mode=
+
+Installation copied from: [[https://emacs-lsp.github.io/lsp-mode/page/installation/]]
+
+#+BEGIN_SRC emacs-lisp
+;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+(setq lsp-keymap-prefix "s-l")
+
+(use-package lsp-mode
+    :ensure t
+    :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+            ;; (XXX-mode . lsp)
+            ;; (XXX-mode . lsp-deferred) ;; to defer LSP server startup
+            ;; if you want which-key integration
+            (lsp-mode . lsp-enable-which-key-integration))
+    :commands lsp lsp-deferred)
+
+;; optionally
+(use-package lsp-ui
  :ensure t
- :defer t)
+ :commands lsp-ui-mode)
+;; if you are helm user
+;; (use-package helm-lsp :commands helm-lsp-workspace-symbol)
+;; if you are ivy user
+(use-package lsp-ivy
+ :ensure t
+ :commands lsp-ivy-workspace-symbol)
+(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
+
+;; optionally if you want to use debugger
+(use-package dap-mode
+ :ensure t)
+;; (use-package dap-LANGUAGE) to load the dap adapter for your language
+
+;; optional if you want which-key integration
+(use-package which-key
+    :ensure t
+    :config
+    (which-key-mode))
 #+END_SRC
 
 * EXWM
