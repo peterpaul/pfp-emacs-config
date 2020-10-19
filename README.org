@@ -19,7 +19,7 @@ In this section we will initialize the Emacs configuration. We will optimize sta
 Configure the configuration file for lexical binding, as opposed to dynamic binding. Lexical binding is the behaviour that most developers actually expect.
 
 #+BEGIN_SRC emacs-lisp
-;;; -*- lexical-binding: t; -*-
+;;; pfp -*- lexical-binding: t; -*-
 #+END_SRC
 
 ** Upon startup, write message with startup details
@@ -108,6 +108,32 @@ Assuming that the code in custom-file is executed before the code ahead of this 
 (when (not (package-installed-p 'use-package))
  (package-refresh-contents)
  (package-install 'use-package))
+#+END_SRC
+
+** Install =quelpa= to install packages directly from github
+
+#+BEGIN_SRC emacs-lisp
+(unless (package-installed-p 'quelpa)
+    (with-temp-buffer
+      (url-insert-file-contents "https://raw.githubusercontent.com/quelpa/quelpa/master/quelpa.el")
+      (eval-buffer)
+      (quelpa-self-upgrade)))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(quelpa
+ '(quelpa-use-package
+   :fetcher git
+   :url "https://github.com/quelpa/quelpa-use-package.git"))
+(require 'quelpa-use-package)
+#+END_SRC
+
+** Install =esup= startup profiler
+
+#+BEGIN_SRC emacs-lisp
+(use-package esup
+  :ensure t
+  :commands (esup))
 #+END_SRC
 
 * Utility functions
@@ -248,7 +274,59 @@ Shortly highlights the cursor position when switching buffers.
   :config (beacon-mode 1))
 #+END_SRC
 
-* Install =restart-emacs=
+* Emacs user friendlyness
+** =discover=
+
+#+BEGIN_SRC emacs-lisp
+(use-package discover
+ :ensure t)
+#+END_SRC
+
+** =discover-my-major=
+
+#+BEGIN_SRC emacs-lisp
+(use-package discover-my-major
+  :ensure t
+  :config
+  (progn
+    (global-set-key (kbd "C-h C-m") 'discover-my-major)
+    (global-set-key (kbd "C-h M-m") 'discover-my-mode)))
+#+END_SRC
+
+** =helpful=
+
+#+BEGIN_SRC emacs-lisp
+(use-package helpful
+  :ensure t
+  :config
+  (progn
+    ;; Note that the built-in `describe-function' includes both functions
+    ;; and macros. `helpful-function' is functions only, so we provide
+    ;; `helpful-callable' as a drop-in replacement.
+    (global-set-key (kbd "C-h f") #'helpful-callable)
+
+    (global-set-key (kbd "C-h v") #'helpful-variable)
+    (global-set-key (kbd "C-h k") #'helpful-key)
+    ;; Lookup the current symbol at point. C-c C-d is a common keybinding
+    ;; for this in lisp modes.
+    (global-set-key (kbd "C-c C-d") #'helpful-at-point)
+
+    ;; Look up *F*unctions (excludes macros).
+    ;;
+    ;; By default, C-h F is bound to `Info-goto-emacs-command-node'. Helpful
+    ;; already links to the manual, if a function is referenced there.
+    (global-set-key (kbd "C-h F") #'helpful-function)
+
+    ;; Look up *C*ommands.
+    ;;
+    ;; By default, C-h C is bound to describe `describe-coding-system'. I
+    ;; don't find this very useful, but it's frequently useful to only
+    ;; look at interactive functions.
+    (global-set-key (kbd "C-h C") #'helpful-command)))
+#+END_SRC
+
+
+** Install =restart-emacs=
 
 #+BEGIN_SRC emacs-lisp
 (use-package restart-emacs
@@ -443,6 +521,26 @@ Some of these configurations depend on external software:
   :ensure t
   :after (flycheck))
 #+END_SRC
+** Very large file support
+
+#+BEGIN_SRC emacs-lisp
+(use-package vlf
+  :ensure t
+  :config
+  (require 'vlf-setup))
+#+END_SRC
+** =expand-region=
+
+#+BEGIN_SRC emacs-lisp
+(use-package expand-region
+ :ensure t)
+#+END_SRC
+** =iedit=
+
+#+BEGIN_SRC emacs-lisp
+(use-package iedit
+ :ensure t)
+#+END_SRC
 
 * System utilities and tools
 ** Silver searcher
@@ -525,6 +623,46 @@ Some of these configurations depend on external software:
     (add-to-list 'auto-mode-alist '("\\.plantuml\\'" . plantuml-mode))))
 #+END_SRC
 
+** Keytool
+
+#+BEGIN_SRC emacs-lisp
+(use-package keystore-mode
+  :ensure t
+  :if (pfp-command-exists-p 'keytool))
+#+END_SRC
+
+** Edit server for Chrome and Firefox
+
+[[https://github.com/stsquad/emacs_chrome]]
+
+#+BEGIN_SRC emacs-lisp
+(use-package edit-server
+  :ensure t
+  :commands edit-server-start
+  :init (if after-init-time
+            (edit-server-start)
+          (add-hook 'after-init-hook
+                    #'(lambda() (edit-server-start))))
+  :config (progn
+            (setq edit-server-new-frame nil)
+            (setq edit-server-new-frame-alist
+                  '((name . "Edit with Emacs FRAME")
+                    (top . 200)
+                    (left . 200)
+                    (width . 80)
+                    (height . 25)
+                    (minibuffer . t)
+                    (menu-bar-lines . t)
+                    (window-system . x)))))
+#+END_SRC
+
+** =system-packages=
+
+#+BEGIN_SRC emacs-lisp
+(use-package system-packages
+ :ensure t)
+#+END_SRC
+
 * File management
 ** Colorize =dired= with =diredfl=
 
@@ -552,6 +690,17 @@ Some of these configurations depend on external software:
  :ensure t
  :config (global-set-key [f8] 'treemacs))
 #+END_SRC
+** Sunrise commander
+
+#+BEGIN_SRC emacs-lisp
+(use-package sunrise-commander
+  :quelpa (sunrise-commander :fetcher github :repo "escherdragon/sunrise-commander")
+  :config
+  (when (display-graphic-p)
+    (require 'sunrise-x-buttons)
+    (require 'sunrise-x-modeline)))
+#+END_SRC
+
 * Version Control
 ** Install =diff-hl=
 
@@ -585,6 +734,17 @@ Some of these configurations depend on external software:
   :ensure t
   :if (pfp-command-exists-p 'git)
   :after (magit))
+#+END_SRC
+
+** Mercurial
+
+*** Install =monky=
+
+#+BEGIN_SRC emacs-lisp
+(use-package monky
+  :ensure t
+  :if (pfp-command-exists-p 'hg)
+  :defer t)
 #+END_SRC
 
 * Project management
@@ -627,6 +787,68 @@ Some of these configurations depend on external software:
   :config
   (eshell-git-prompt-use-theme 'powerline))
 #+END_SRC
+** Multi terminal emulation
+
+#+BEGIN_SRC emacs-lisp
+(use-package multi-term
+  :ensure t
+  :bind (("<f5>" . 'multi-term)
+         ("<C-next>" . 'multi-term-next)
+         ("<C-prior>" . 'multi-term-prev))
+  :custom
+  (multi-term-buffer-name "term"))
+#+END_SRC
+#+BEGIN_SRC emacs-lisp
+(use-package xterm-color
+  :if nil
+  :config
+  (progn
+    (setq comint-output-filter-functions
+          (remove 'ansi-color-process-output comint-output-filter-functions))
+
+    (add-hook 'shell-mode-hook
+              (lambda () (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter nil t)))
+
+    ;; Also set TERM accordingly (xterm-256color)
+
+    ;; You can also use it with eshell (and thus get color output from system ls):
+
+    (require 'eshell)
+
+    (add-hook 'eshell-before-prompt-hook
+              (lambda ()
+                (setq xterm-color-preserve-properties t)))
+
+    (add-to-list 'eshell-preoutput-filter-functions #'xterm-color-filter)
+    (setq eshell-output-filter-functions (remove 'eshell-handle-ansi-color eshell-output-filter-functions))
+
+    ;;  Don't forget to setenv TERM xterm-256color
+    ))
+#+END_SRC
+#+BEGIN_SRC emacs-lisp
+(use-package ansi-color
+  :ensure t
+  :config
+  (progn
+    (defun colorize-compilation-buffer ()
+      (ansi-color-apply-on-region compilation-filter-start (point-max)))
+    (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(use-package eterm-256color
+  :ensure t
+  :hook (term-mode . eterm-256color-mode))
+#+END_SRC
+
+** Bash completion
+
+#+BEGIN_SRC emacs-lisp
+(use-package bash-completion
+  :ensure t
+  :config
+  (bash-completion-setup))
+#+END_SRC
 
 * Web
 
@@ -660,6 +882,12 @@ Some of these configurations depend on external software:
 (use-package json-mode
  :ensure t)
 #+END_SRC
+** log files
+
+#+BEGIN_SRC emacs-lisp
+(use-package logview
+ :ensure t)
+#+END_SRC
 
 * Markup languages
 ** Org-mode
@@ -680,6 +908,61 @@ Some of these configurations depend on external software:
   :config
   (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 #+END_SRC
+*** =org-preview-html=
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-preview-html
+  :ensure t
+  :after (org))
+#+END_SRC
+
+*** =org-brain= DISABLED
+
+#+BEGIN_SRC elisp
+(use-package org-brain
+  :after (org)
+  :init
+  (setq org-brain-path "~/Documents/brain")
+  ;; For Evil users
+  ;; (with-eval-after-load 'evil
+  ;;   (evil-set-initial-state 'org-brain-visualize-mode 'emacs))
+  :config
+  (setq org-id-track-globally t)
+  (setq org-id-locations-file "~/.emacs.d/.org-id-locations")
+  ;; (push '("b" "Brain" plain (function org-brain-goto-end)
+  ;;         "* %i%?" :empty-lines 1)
+  ;;       org-capture-templates)
+  (setq org-brain-visualize-default-choices 'all)
+  (setq org-brain-title-max-length 12))
+#+END_SRC
+
+*** Present
+
+#+BEGIN_SRC emacs-lisp
+(use-package epresent
+  :ensure t
+  :after (org))
+
+(use-package org-present
+  :ensure t
+  :after (org)
+  :config
+  (eval-after-load "org-present"
+    '(progn
+       (add-hook 'org-present-mode-hook
+                 (lambda ()
+                   (org-present-big)
+                   (org-display-inline-images)
+                   (org-present-hide-cursor)
+                   (org-present-read-only)))
+       (add-hook 'org-present-mode-quit-hook
+                 (lambda ()
+                   (org-present-small)
+                   (org-remove-inline-images)
+                   (org-present-show-cursor)
+                   (org-present-read-write))))))
+#+END_SRC
+
 
 ** Markdown
 
@@ -705,6 +988,22 @@ Some of these configurations depend on external software:
          (end-of-defun-function 'markdown-forward-inner-block))
      (narrow-to-defun)))
  #+END_SRC
+
+*** preview mode
+
+#+BEGIN_SRC emacs-lisp
+(use-package markdown-preview-mode
+ :ensure t
+ :defer t)
+#+END_SRC
+
+*** table of contents
+
+#+BEGIN_SRC emacs-lisp
+(use-package markdown-toc
+ :ensure t
+ :defer t)
+#+END_SRC
 
 * Programming
 ** Emacs Lisp
@@ -778,7 +1077,31 @@ Install [[https://github.com/michaelklishin/cucumber.el][=feature-mode=]] to edi
  :ensure t)
 #+END_SRC
 
-* EXWM
+** Javascript
+
+#+BEGIN_SRC emacs-lisp
+(use-package js2-mode
+  :ensure t
+  :config
+  (progn
+    (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
+    (add-hook 'js2-mode-hook #'js2-imenu-extras-mode)))
+
+(use-package typescript-mode
+  :ensure t)
+
+(use-package tide
+  :ensure t
+  :after (typescript-mode company flycheck)
+  :hook ((typescript-mode . tide-setup)
+         (typescript-mode . tide-hl-identifier-mode)
+         (before-save . tide-format-before-save)))
+
+(use-package ts-comint
+  :ensure t)
+#+END_SRC
+
+* EXWM Window Manager
 ** Install =exwm=
 
 #+BEGIN_SRC emacs-lisp
@@ -903,6 +1226,174 @@ Install [[https://github.com/michaelklishin/cucumber.el][=feature-mode=]] to edi
   ;; System tray
   (require 'exwm-systemtray)
   (exwm-systemtray-enable)))
+#+END_SRC
+** XRandr screen layouts
+
+#+BEGIN_SRC emacs-lisp
+(defun pfp/screenlayout (layout)
+  (interactive
+   (list
+    (completing-read "Select the screenlayout: "
+                     (seq-filter (lambda (x) (s-ends-with? ".sh" x)) (directory-files "~/.screenlayout")))))
+  (let ((command (format "~/.screenlayout/%s" layout)))
+    (message "command: %s" command)
+    (start-process-shell-command "bash" nil command)))
+
+(defun pfp/xrandr-desk-3-window ()
+  (interactive)
+  (start-process-shell-command "xrandr" nil "--output eDP-1 --mode 1920x1080 --pos 0x0 --rotate normal --output HDMI-2 --mode 1920x1080 --pos 3840x0 --rotate normal --output HDMI-1 --primary --mode 1920x1080 --pos 1920x0 --rotate normal --output DP-3 --off --output DP-2 --off --output DP-1 --off")
+  (setq exwm-randr-workspace-monitor-plist '(0 "eDP-1" 1 "HDMI-1" 2 "HDMI-2"))
+  (exwm-randr-refresh))
+
+(defun pfp/xrandr-desk-2-window ()
+  (interactive)
+  (start-process-shell-command "xrandr" nil "--output eDP-1 --off --output HDMI-2 --mode 1920x1080 --pos 1920x0 --rotate normal --output HDMI-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal --output DP-3 --off --output DP-2 --off --output DP-1 --off")
+  (setq exwm-randr-workspace-monitor-plist '(0 "HDMI-1" 1 "HDMI-2"))
+  (exwm-randr-refresh))
+
+(defun pfp/xrandr-desk-home ()
+  (interactive)
+  (start-process-shell-command "xrandr" nil "--output eDP-1 --mode 1920x1080 --pos 0x0 --rotate normal --output HDMI-1 --primary --mode 1920x1080 --pos 1920x0 --rotate normal --output HDMI-2 --off --output DP-3 --off --output DP-2 --off --output DP-1 --off")
+  (setq exwm-randr-workspace-monitor-plist '(0 "eDP-1" 1 "HDMI-1"))
+  (exwm-randr-refresh))
+
+(defun pfp/xrandr-laptop ()
+  (interactive)
+  (start-process-shell-command "xrandr" nil "--output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal --output HDMI-2 --off --output HDMI-1 --off --output DP-3 --off --output DP-2 --off --output DP-1 --off")
+  (setq exwm-randr-workspace-monitor-plist '(0 "eDP-1"))
+  (exwm-randr-refresh))
+
+(defun pfp/xrandr-attic ()
+  (interactive)
+  (start-process-shell-command "xrandr" nil "--output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal --output HDMI-2 --off --output HDMI-1 --off --output DP-3 --off --output DP-2 --off --output DP-1 --off")
+  (setq exwm-randr-workspace-monitor-plist '(0 "eDP-1" 1 "DP-3"))
+  (exwm-randr-refresh))
+#+END_SRC
+
+* Emacs server
+
+Start server if not running
+
+#+BEGIN_SRC emacs-lisp
+(load "server")
+(unless (server-running-p) (server-start))
+#+END_SRC
+
+* TODO Misc copied from old config
+
+#+BEGIN_SRC emacs-lisp
+(use-package popwin
+  :ensure t
+  :config
+  (popwin-mode 1))
+
+(use-package shell-pop
+  :ensure t
+  :config
+  (progn
+    (setq shell-pop-shell-type (quote ("eshell" "*eshell*" (lambda nil (eshell)))))
+    (setq shell-pop-universal-key "C-c t")))
+
+;; (use-package origami)
+
+;; (use-package customize-eshell
+;;   :load-path "lisp")
+
+(use-package 2048-game
+ :ensure t)
+
+(use-package anzu
+ :ensure t)
+
+(use-package visual-regexp
+ :ensure t)
+
+(use-package package-lint
+ :ensure t)
+
+(use-package x509-mode
+  :ensure t
+  :if (pfp-command-exists-p 'openssl))
+
+(use-package pretty-mode
+  :ensure t
+  :config
+  (progn
+    ;; (global-pretty-mode t)
+    ;; (global-prettify-symbols-mode 1)
+
+    ;; (pretty-deactivate-groups
+    ;;  '(:equality :ordering :ordering-double :ordering-triple
+    ;; 	       :arrows :arrows-twoheaded :punctuation
+    ;; 	       :logic :sets))
+
+    (pretty-activate-groups
+     '(:sub-and-superscripts
+       :greek
+       :arithmetic-nary
+       :equality
+       :ordering
+       :ordering-double
+       :ordering-triple
+       :arrows
+       :arrows-twoheaded
+       :punctuation
+       :logic
+       :sets
+       ))))
+
+(use-package solaire-mode
+  :ensure t
+  :after (nord-theme doom-themes)
+  :config
+  (progn
+    (require 'solaire-mode)
+    ;; brighten buffers (that represent real files)
+    (add-hook 'after-change-major-mode-hook #'turn-on-solaire-mode)
+    ;; To enable solaire-mode unconditionally for certain modes:
+    (add-hook 'ediff-prepare-buffer-hook #'solaire-mode)
+    ;; ...if you use auto-revert-mode, this prevents solaire-mode from turning
+    ;; itself off every time Emacs reverts the file
+    (add-hook 'after-revert-hook #'turn-on-solaire-mode)
+    ;; highlight the minibuffer when it is activated:
+    (add-hook 'minibuffer-setup-hook #'solaire-mode-in-minibuffer)
+    ;; if the bright and dark background colors are the wrong way around, use this
+    ;; to switch the backgrounds of the `default` and `solaire-default-face` faces.
+    ;; This should be used *after* you load the active theme!
+    ;;
+    ;; NOTE: This is necessary for themes in the doom-themes package!
+    (solaire-mode-swap-bg)))
+
+(use-package dashboard
+  :ensure t
+  :config
+  (require 'dashboard)
+  (dashboard-setup-startup-hook)
+  (setq dashboard-items '((recents  . 10)
+                          (bookmarks . 10)
+                          (projects . 5)
+                          (agenda . 5)
+                          (registers . 5))))
+
+(use-package aggressive-indent
+  :ensure t
+  :config
+  (progn
+    (global-aggressive-indent-mode nil)
+    (add-to-list 'aggressive-indent-excluded-modes 'java-mode)))
+
+;; (use-package sidebar
+;;   :straight (sidebar
+;;              :type git
+;;              :host github
+;;              :repo "sebastiencs/sidebar.el"))
+
+(use-package guru-mode
+  :ensure t
+  :hook prog-mode)
+
+
+
 #+END_SRC
 
 * End
