@@ -60,11 +60,12 @@ In order to optimize the startup time we will change the garbage collection sett
 ** Standard UI tweaks
 
 #+BEGIN_SRC emacs-lisp
-(display-battery-mode t)
-(display-time-mode t)
+(display-battery-mode 1)
+(display-time-mode 1)
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
 (menu-bar-mode -1)
+(show-paren-mode 1)
 #+END_SRC
 
 ** Enable linum for programming modes
@@ -570,6 +571,12 @@ Some of these configurations depend on external software:
 (use-package lastpass
   :ensure
   :if (pfp-command-exists-p 'lpass))
+(use-package lpass
+  :if (pfp-command-exists-p 'lpass)
+  :quelpa
+  (lpass
+    :fetcher github
+    :repo "peterpaul/lpass"))
 #+END_SRC
 
 ** Gnuplot
@@ -609,6 +616,36 @@ Some of these configurations depend on external software:
   :if (pfp-command-exists-p 'vagrant))
 #+END_SRC
 
+** Ansible
+
+#+BEGIN_SRC emacs-lisp
+(use-package ansible
+  :ensure t
+  :if (pfp-command-exists-p 'ansible)
+  :config
+  (progn
+    (add-to-list 'auto-mode-alist '(".*inventory.*/group_vars/.*\\'" . yaml-mode))
+    (add-to-list 'auto-mode-alist '(".*inventory.*/host_vars/.*\\'" . yaml-mode))
+    ))
+(use-package ansible-doc
+  :ensure t
+  :if (pfp-command-exists-p 'ansible)
+  :after (ansible))
+(use-package ansible-vault
+  :ensure t
+  :if (pfp-command-exists-p 'ansible)
+  :after (ansible))
+(use-package company-ansible
+  :ensure t
+  :if (pfp-command-exists-p 'ansible)
+  :after (ansible company))
+(use-package ansible-vault-string
+  :if (pfp-command-exists-p 'ansible)
+  :quelpa (ansible-vault-string
+           :fetcher github
+           :repo "peterpaul/ansible-vault-string"))
+#+END_SRC
+
 ** PlantUML
 
 - Reference Guide: [[http://plantuml.com/PlantUML_Language_Reference_Guide.pdf]]
@@ -621,6 +658,23 @@ Some of these configurations depend on external software:
   (progn
     (add-to-list 'auto-mode-alist '("\\.puml\\'" . plantuml-mode))
     (add-to-list 'auto-mode-alist '("\\.plantuml\\'" . plantuml-mode))))
+#+END_SRC
+** OpenSSL X.509 Certificate viewer
+
+#+BEGIN_SRC emacs-lisp
+(use-package x509-mode
+  :ensure t
+  :if (pfp-command-exists-p 'openssl))
+(use-package x509-certificate-region
+  :ensure t
+  :if (pfp-command-exists-p 'openssl)
+  :quelpa (x509-certificate-region
+           :fetcher github
+           :repo "peterpaul/x509-certificate-region.el")
+  :bind (("C-x x c" . x509-view-certificate)
+         ("C-x x x" . x509-view-xml-element-as-x509-certificate)
+         ("C-x x r" . x509-view-region-as-x509-certificate)
+         ("C-x x p" . x509-view-paragraph-as-x509-certificate)))
 #+END_SRC
 
 ** Keytool
@@ -661,6 +715,37 @@ Some of these configurations depend on external software:
 #+BEGIN_SRC emacs-lisp
 (use-package system-packages
  :ensure t)
+#+END_SRC
+
+** Slack
+
+#+BEGIN_SRC emacs-lisp
+(use-package slack
+  :ensure t
+  :commands (slack-start)
+  :init
+  (setq slack-buffer-emojify t) ;; if you want to enable emoji, default nil
+  (setq slack-prefer-current-team t)
+  :config
+  (let ((file "~/.emacs.d/slack-teams.el"))
+  (if (f-exists? file)
+	(load file)
+    (progn
+      (f-touch file)
+      (f-write ";;; slack-teams.el --- Slack team configuration -*- lexical-binding: t; -*-
+;;; Commentary:
+;; Register your slack teams in the Code section, using `slack-register-team'.
+
+;;; Code:
+
+(provide 'slack-teams)
+;;; slack-teams.el ends here" 'utf-8 file)))))
+
+(use-package alert
+  :ensure t
+  :commands (alert)
+  :init
+  (setq alert-default-style 'notifier))
 #+END_SRC
 
 * File management
@@ -918,8 +1003,9 @@ Some of these configurations depend on external software:
 
 *** =org-brain= DISABLED
 
-#+BEGIN_SRC elisp
+#+BEGIN_SRC emacs-lisp
 (use-package org-brain
+  :disabled
   :after (org)
   :init
   (setq org-brain-path "~/Documents/brain")
@@ -1310,10 +1396,6 @@ Start server if not running
 
 (use-package package-lint
  :ensure t)
-
-(use-package x509-mode
-  :ensure t
-  :if (pfp-command-exists-p 'openssl))
 
 (use-package pretty-mode
   :ensure t
