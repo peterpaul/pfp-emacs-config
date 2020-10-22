@@ -19,7 +19,7 @@ In this section we will initialize the Emacs configuration. We will optimize sta
 Configure the configuration file for lexical binding, as opposed to dynamic binding. Lexical binding is the behaviour that most developers actually expect.
 
 #+BEGIN_SRC emacs-lisp
-;;; pfp -*- lexical-binding: t; -*-
+;;; init -*- lexical-binding: t; -*-
 #+END_SRC
 
 ** Upon startup, write message with startup details
@@ -177,19 +177,19 @@ Memoize is used by some utility functions.
  :ensure t)
 #+END_SRC
 
-** =pfp-recompile-user-dir=
+** =init-recompile-user-dir=
 
 #+BEGIN_SRC emacs-lisp
-(defun pfp-recompile-user-dir ()
+(defun init-recompile-user-dir ()
  "Recompile everything in the `package-user-dir'."
  (interactive)
  (byte-recompile-directory package-user-dir nil 'force))
 #+END_SRC
 
-** =pfp-command-exists-p=
+** =init-command-exists-p=
 
 #+BEGIN_SRC emacs-lisp
-(defmemoize pfp-command-exists-p (command)
+(defmemoize init-command-exists-p (command)
   "Checks whether COMMAND exists on this system.
 
 The existence of COMMAND is checked using =which COMMAND=. So this function
@@ -549,7 +549,7 @@ Some of these configurations depend on external software:
 #+BEGIN_SRC emacs-lisp
 (use-package ag
   :ensure t
-  :if (pfp-command-exists-p 'ag))
+  :if (init-command-exists-p 'ag))
 #+END_SRC
 
 ** Ripgrep
@@ -557,10 +557,10 @@ Some of these configurations depend on external software:
 #+BEGIN_SRC emacs-lisp
 (use-package ripgrep
   :ensure t
-  :if (pfp-command-exists-p 'rg))
+  :if (init-command-exists-p 'rg))
 (use-package rg
   :ensure t
-  :if (pfp-command-exists-p 'rg))
+  :if (init-command-exists-p 'rg))
 #+END_SRC
 
 *** TODO Investigate whether both are needed
@@ -570,9 +570,9 @@ Some of these configurations depend on external software:
 #+BEGIN_SRC emacs-lisp
 (use-package lastpass
   :ensure
-  :if (pfp-command-exists-p 'lpass))
+  :if (init-command-exists-p 'lpass))
 (use-package lpass
-  :if (pfp-command-exists-p 'lpass)
+  :if (init-command-exists-p 'lpass)
   :quelpa
   (lpass
     :fetcher github
@@ -584,7 +584,7 @@ Some of these configurations depend on external software:
 #+BEGIN_SRC emacs-lisp
 (use-package gnuplot
   :ensure t
-  :if (pfp-command-exists-p 'gnuplot)
+  :if (init-command-exists-p 'gnuplot)
   :config
   (progn
     ;; these lines enable the use of gnuplot mode
@@ -604,7 +604,7 @@ Some of these configurations depend on external software:
 #+BEGIN_SRC emacs-lisp
 (use-package docker
   :ensure t
-  :if (pfp-command-exists-p 'docker)
+  :if (init-command-exists-p 'docker)
   :bind ("C-c d" . docker))
 #+END_SRC
 
@@ -613,7 +613,7 @@ Some of these configurations depend on external software:
 #+BEGIN_SRC emacs-lisp
 (use-package vagrant
   :ensure t
-  :if (pfp-command-exists-p 'vagrant))
+  :if (init-command-exists-p 'vagrant))
 #+END_SRC
 
 ** Ansible
@@ -621,7 +621,7 @@ Some of these configurations depend on external software:
 #+BEGIN_SRC emacs-lisp
 (use-package ansible
   :ensure t
-  :if (pfp-command-exists-p 'ansible)
+  :if (init-command-exists-p 'ansible)
   :config
   (progn
     (add-to-list 'auto-mode-alist '(".*inventory.*/group_vars/.*\\'" . yaml-mode))
@@ -629,18 +629,18 @@ Some of these configurations depend on external software:
     ))
 (use-package ansible-doc
   :ensure t
-  :if (pfp-command-exists-p 'ansible)
+  :if (init-command-exists-p 'ansible)
   :after (ansible))
 (use-package ansible-vault
   :ensure t
-  :if (pfp-command-exists-p 'ansible)
+  :if (init-command-exists-p 'ansible)
   :after (ansible))
 (use-package company-ansible
   :ensure t
-  :if (pfp-command-exists-p 'ansible)
+  :if (init-command-exists-p 'ansible)
   :after (ansible company))
 (use-package ansible-vault-string
-  :if (pfp-command-exists-p 'ansible)
+  :if (init-command-exists-p 'ansible)
   :quelpa (ansible-vault-string
            :fetcher github
            :repo "peterpaul/ansible-vault-string"))
@@ -664,10 +664,10 @@ Some of these configurations depend on external software:
 #+BEGIN_SRC emacs-lisp
 (use-package x509-mode
   :ensure t
-  :if (pfp-command-exists-p 'openssl))
+  :if (init-command-exists-p 'openssl))
 (use-package x509-certificate-region
   :ensure t
-  :if (pfp-command-exists-p 'openssl)
+  :if (init-command-exists-p 'openssl)
   :quelpa (x509-certificate-region
            :fetcher github
            :repo "peterpaul/x509-certificate-region.el")
@@ -682,7 +682,7 @@ Some of these configurations depend on external software:
 #+BEGIN_SRC emacs-lisp
 (use-package keystore-mode
   :ensure t
-  :if (pfp-command-exists-p 'keytool))
+  :if (init-command-exists-p 'keytool))
 #+END_SRC
 
 ** Edit server for Chrome and Firefox
@@ -808,7 +808,7 @@ Some of these configurations depend on external software:
 #+BEGIN_SRC emacs-lisp
 (use-package magit
  :ensure t
- :if (pfp-command-exists-p 'git)
+ :if (init-command-exists-p 'git)
  :defer t)
 #+END_SRC
 
@@ -817,7 +817,7 @@ Some of these configurations depend on external software:
 #+BEGIN_SRC emacs-lisp
 (use-package forge
   :ensure t
-  :if (pfp-command-exists-p 'git)
+  :if (init-command-exists-p 'git)
   :after (magit))
 #+END_SRC
 
@@ -828,7 +828,7 @@ Some of these configurations depend on external software:
 #+BEGIN_SRC emacs-lisp
 (use-package monky
   :ensure t
-  :if (pfp-command-exists-p 'hg)
+  :if (init-command-exists-p 'hg)
   :defer t)
 #+END_SRC
 
@@ -843,7 +843,7 @@ Some of these configurations depend on external software:
   :ensure t
   :defer t
   :after (projectile)
-  :if (pfp-command-exists-p 'rg))
+  :if (init-command-exists-p 'rg))
 (use-package term-projectile
  :ensure t
  :defer t)
@@ -1316,7 +1316,7 @@ Install [[https://github.com/michaelklishin/cucumber.el][=feature-mode=]] to edi
 ** XRandr screen layouts
 
 #+BEGIN_SRC emacs-lisp
-(defun pfp/screenlayout (layout)
+(defun init/screenlayout (layout)
   (interactive
    (list
     (completing-read "Select the screenlayout: "
@@ -1325,31 +1325,31 @@ Install [[https://github.com/michaelklishin/cucumber.el][=feature-mode=]] to edi
     (message "command: %s" command)
     (start-process-shell-command "bash" nil command)))
 
-(defun pfp/xrandr-desk-3-window ()
+(defun init/xrandr-desk-3-window ()
   (interactive)
   (start-process-shell-command "xrandr" nil "--output eDP-1 --mode 1920x1080 --pos 0x0 --rotate normal --output HDMI-2 --mode 1920x1080 --pos 3840x0 --rotate normal --output HDMI-1 --primary --mode 1920x1080 --pos 1920x0 --rotate normal --output DP-3 --off --output DP-2 --off --output DP-1 --off")
   (setq exwm-randr-workspace-monitor-plist '(0 "eDP-1" 1 "HDMI-1" 2 "HDMI-2"))
   (exwm-randr-refresh))
 
-(defun pfp/xrandr-desk-2-window ()
+(defun init/xrandr-desk-2-window ()
   (interactive)
   (start-process-shell-command "xrandr" nil "--output eDP-1 --off --output HDMI-2 --mode 1920x1080 --pos 1920x0 --rotate normal --output HDMI-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal --output DP-3 --off --output DP-2 --off --output DP-1 --off")
   (setq exwm-randr-workspace-monitor-plist '(0 "HDMI-1" 1 "HDMI-2"))
   (exwm-randr-refresh))
 
-(defun pfp/xrandr-desk-home ()
+(defun init/xrandr-desk-home ()
   (interactive)
   (start-process-shell-command "xrandr" nil "--output eDP-1 --mode 1920x1080 --pos 0x0 --rotate normal --output HDMI-1 --primary --mode 1920x1080 --pos 1920x0 --rotate normal --output HDMI-2 --off --output DP-3 --off --output DP-2 --off --output DP-1 --off")
   (setq exwm-randr-workspace-monitor-plist '(0 "eDP-1" 1 "HDMI-1"))
   (exwm-randr-refresh))
 
-(defun pfp/xrandr-laptop ()
+(defun init/xrandr-laptop ()
   (interactive)
   (start-process-shell-command "xrandr" nil "--output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal --output HDMI-2 --off --output HDMI-1 --off --output DP-3 --off --output DP-2 --off --output DP-1 --off")
   (setq exwm-randr-workspace-monitor-plist '(0 "eDP-1"))
   (exwm-randr-refresh))
 
-(defun pfp/xrandr-attic ()
+(defun init/xrandr-attic ()
   (interactive)
   (start-process-shell-command "xrandr" nil "--output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal --output HDMI-2 --off --output HDMI-1 --off --output DP-3 --off --output DP-2 --off --output DP-1 --off")
   (setq exwm-randr-workspace-monitor-plist '(0 "eDP-1" 1 "DP-3"))
@@ -1481,6 +1481,6 @@ Start server if not running
 * End
 
 #+BEGIN_SRC emacs-lisp
-(provide 'pfp)
-;;; pfp ends here
+(provide 'init)
+;;; init ends here
 #+END_SRC
