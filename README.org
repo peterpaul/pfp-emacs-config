@@ -382,6 +382,12 @@ Some of these configurations depend on external software:
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
+(use-package ivy-hydra
+  :ensure t
+  :defer t)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
 (use-package counsel
   :ensure t
   :after (ivy)
