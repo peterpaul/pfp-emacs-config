@@ -41,6 +41,7 @@ Install a startup hook that informs the user of the startup duration and the num
 In order to optimize the startup time we will change the garbage collection settings during startup and restore the original settings after startup is done.
 
 #+BEGIN_SRC emacs-lisp
+(setq gc-cons-threshold (* 64 1024 1024))
 (let ((gc-cons-threshold-backup gc-cons-threshold)
       (gc-cons-percentage-backup gc-cons-percentage)
       file-name-handler-alist-backup file-name-handler-alist)
@@ -486,15 +487,6 @@ Some of these configurations depend on external software:
 (use-package company-box
   :ensure t
   :hook (company-mode . company-box-mode))
-
-;; Additional completion packages
-(use-package company-lsp
-  :ensure t
-  :after (company lsp-mode)
-  :commands company-lsp
-  :init (add-to-list 'company-backends #'company-lsp)
-  :config (setq company-lsp-enable-snippet t
-                company-lsp-cache-candidates t))
 
 (use-package company-quickhelp
   :ensure t
@@ -1065,7 +1057,7 @@ Some of these configurations depend on external software:
  (defun markdown-forward-inner-block ()
    "Navigate forward to the end of this block."
    (markdown-forward-block)
-   (previous-line))
+   (forward-line -1))
 
  (defun markdown-narrow-inner-block ()
    "Make text inside current block visible.
@@ -1126,8 +1118,12 @@ Installation copied from: [[https://emacs-lsp.github.io/lsp-mode/page/installati
             ;; (XXX-mode . lsp)
             ;; (XXX-mode . lsp-deferred) ;; to defer LSP server startup
             ;; if you want which-key integration
+	    (rust-mode . lsp-deferred)
             (lsp-mode . lsp-enable-which-key-integration))
-    :commands lsp lsp-deferred)
+    :commands lsp lsp-deferred
+    :config (progn
+              (setq read-process-output-max (* 1024 1024)) ;; 1mb
+            ))
 
 ;; optionally
 (use-package lsp-ui
@@ -1186,6 +1182,32 @@ Install [[https://github.com/michaelklishin/cucumber.el][=feature-mode=]] to edi
 
 (use-package ts-comint
   :ensure t)
+#+END_SRC
+
+** Rust
+
+#+BEGIN_SRC emacs-lisp
+(use-package rust-mode
+  :ensure t
+  :defer t
+  :if (init-command-exists-p 'cargo))
+
+(use-package cargo
+  :ensure t
+  :defer t
+  :if (init-command-exists-p 'cargo)
+  :hook (rust-mode . cargo-minor-mode))
+
+(use-package flycheck-rust
+  :ensure t
+  :defer t
+  :if (init-command-exists-p 'cargo)
+  :config (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
+
+(use-package toml-mode
+  :ensure t
+  :defer t
+  :if (init-command-exists-p 'cargo))
 #+END_SRC
 
 * EXWM Window Manager
@@ -1445,7 +1467,7 @@ Start server if not running
     ;; This should be used *after* you load the active theme!
     ;;
     ;; NOTE: This is necessary for themes in the doom-themes package!
-    (solaire-mode-swap-bg)))
+    (setq solaire-mode-auto-swap-bg 't)))
 
 (use-package dashboard
   :ensure t
