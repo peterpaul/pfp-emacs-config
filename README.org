@@ -67,6 +67,8 @@ In order to optimize the startup time we will change the garbage collection sett
 (tool-bar-mode -1)
 (menu-bar-mode -1)
 (show-paren-mode 1)
+(setq-default indent-tabs-mode nil)
+(setq-default tab-width 4)
 #+END_SRC
 
 ** Enable linum for programming modes
@@ -541,6 +543,32 @@ Some of these configurations depend on external software:
 (use-package iedit
  :ensure t)
 #+END_SRC
+** Move lines
+
+#+BEGIN_SRC emacs-lisp
+(defmacro init-save-column (&rest body)
+  `(let ((column (current-column)))
+     (unwind-protect
+         (progn ,@body)
+       (move-to-column column))))
+(put 'init-save-column 'lisp-indent-function 0)
+
+(defun init-move-line-up ()
+  (interactive)
+  (init-save-column
+    (transpose-lines 1)
+    (forward-line -2)))
+
+(defun init-move-line-down ()
+  (interactive)
+  (init-save-column
+    (forward-line 1)
+    (transpose-lines 1)
+    (forward-line -1)))
+
+(global-set-key (kbd "M-<up>") 'init-move-line-up)
+(global-set-key (kbd "M-<down>") 'init-move-line-down)
+#+END_SRC
 
 * System utilities and tools
 ** Silver searcher
@@ -747,6 +775,24 @@ Some of these configurations depend on external software:
   (setq alert-default-style 'notifier))
 #+END_SRC
 
+** Network Manager
+
+#+BEGIN_SRC emacs-lisp
+(require 'seq)
+(defun init-nm-get-connections ()
+  "Get a list of all NetworkManager connections."
+  (seq-filter
+   (lambda (x) (not (string-blank-p x)))
+   (split-string
+    (shell-command-to-string "nmcli -o -m multiline -t -f name connection | cut -d':' -f2")
+    "\n")))
+
+(defun init-nm-up (connection)
+  "Bring NetworkManager CONNECTION up."
+  (interactive (list (completing-read "Connection: " (init-nm-get-connections))))
+  (async-shell-command (format "nmcli con up id %s" connection)))
+#+END_SRC
+
 * File management
 ** Colorize =dired= with =diredfl=
 
@@ -882,6 +928,7 @@ Some of these configurations depend on external software:
   :custom
   (multi-term-buffer-name "term"))
 #+END_SRC
+
 #+BEGIN_SRC emacs-lisp
 (use-package xterm-color
   :if nil
@@ -909,14 +956,15 @@ Some of these configurations depend on external software:
     ;;  Don't forget to setenv TERM xterm-256color
     ))
 #+END_SRC
+
 #+BEGIN_SRC emacs-lisp
 (use-package ansi-color
   :ensure t
   :config
   (progn
-    (defun colorize-compilation-buffer ()
+    (defun init-colorize-compilation-buffer ()
       (ansi-color-apply-on-region compilation-filter-start (point-max)))
-    (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)))
+    (add-hook 'compilation-filter-hook 'init-colorize-compilation-buffer)))
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
@@ -941,6 +989,15 @@ Some of these configurations depend on external software:
 #+BEGIN_SRC emacs-lisp
 (use-package restclient
  :ensure t)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(use-package company-restclient
+  :ensure t
+  :after restclient
+  :config (progn
+            (add-to-list 'company-backend 'company-restclient)
+            (add-hook 'restclient-mode-hook #'company-mode-on)))
 #+END_SRC
 
 * File type
@@ -1055,22 +1112,22 @@ Some of these configurations depend on external software:
  (use-package markdown-mode
   :ensure t)
 
- (defun markdown-backward-inner-block ()
+ (defun init-markdown-backward-inner-block ()
    "Navigate back to the beginning of this block."
    (markdown-backward-block)
    (forward-line))
 
- (defun markdown-forward-inner-block ()
+ (defun init-markdown-forward-inner-block ()
    "Navigate forward to the end of this block."
    (markdown-forward-block)
    (forward-line -1))
 
- (defun markdown-narrow-inner-block ()
+ (defun init-markdown-narrow-inner-block ()
    "Make text inside current block visible.
  The current block is the one that contains point or follows point."
    (interactive)
-   (let ((beginning-of-defun-function 'markdown-backward-inner-block)
-         (end-of-defun-function 'markdown-forward-inner-block))
+   (let ((beginning-of-defun-function 'init-markdown-backward-inner-block)
+         (end-of-defun-function 'init-markdown-forward-inner-block))
      (narrow-to-defun)))
  #+END_SRC
 
@@ -1108,6 +1165,25 @@ Some of these configurations depend on external software:
   :ensure t
   :config
   (require 'smartparens-config))
+#+END_SRC
+
+*** Custom functions
+
+**** Comment next Sexp
+
+#+BEGIN_SRC emacs-lisp
+(defun init-comment-next-sexp (&optional ARG)
+  "Comment the next sexp.
+With ARG, comment the next ARG sexps.
+Negative ARG means comment backwards across N sexps.
+This command assumes point is not in a string or comment."
+  (interactive)
+  (let ((beg (point)))
+    (forward-list ARG)
+    (unless (eolp)
+      (electric-newline-and-maybe-indent))
+    (comment-region beg (point))
+    (indent-for-tab-command)))
 #+END_SRC
 
 ** =lsp-mode=
@@ -1214,6 +1290,63 @@ Install [[https://github.com/michaelklishin/cucumber.el][=feature-mode=]] to edi
   :ensure t
   :defer t
   :if (init-command-exists-p 'cargo))
+#+END_SRC
+
+** Java
+
+Nice package to automatically disassemble java .class files
+
+#+BEGIN_SRC emacs-lisp
+(use-package autodisass-java-bytecode
+  :ensure t
+  :defer t)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(use-package lsp-java
+  :if (init-command-exists-p 'javac)
+  :after (lsp-mode)
+  :defer 3
+  :init
+  (progn
+    (require 'lsp-ui-flycheck)
+    (require 'lsp-ui-sideline)
+    (add-hook 'java-mode-hook #'lsp)
+    (add-hook 'java-mode-hook #'flycheck-mode)
+    (add-hook 'java-mode-hook #'company-mode)
+    (add-hook 'java-mode-hook (lambda () (lsp-ui-flycheck-enable t)))
+    (add-hook 'java-mode-hook #'lsp-ui-sideline-mode)))
+
+(use-package java-snippets
+  :ensure t
+  :if (init-command-exists-p 'javac)
+  :after (yasnippet)
+  :init (add-hook 'java-mode-hook #'yas-minor-mode))
+
+;; (use-package dap-java :after (lsp-java))
+;; (use-package lsp-java-treemacs :after (treemacs))
+#+END_SRC
+
+** Kotlin
+
+#+BEGIN_SRC emacs-lisp
+(use-package kotlin-mode
+  :ensure t)
+#+END_SRC
+
+** Haskell
+
+#+BEGIN_SRC emacs-lisp
+(use-package haskell-mode
+  :if (init-command-exists-p 'stack))
+
+(use-package haskell-emacs
+  :if (init-command-exists-p 'stack))
+
+(use-package intero
+  :if (init-command-exists-p 'stack)
+  :config
+  (add-hook 'haskell-mode-hook 'intero-mode))
 #+END_SRC
 
 * EXWM Window Manager
@@ -1392,6 +1525,20 @@ Start server if not running
 #+BEGIN_SRC emacs-lisp
 (load "server")
 (unless (server-running-p) (server-start))
+#+END_SRC
+
+* Macros
+
+** Pretty print xml
+
+#+BEGIN_SRC emacs-lisp
+(fset 'init-macro-prettyprint-xml
+      (lambda (&optional arg)
+	"Format and indent xml."
+	(interactive "p")
+	(kmacro-exec-ring-item
+	 (quote ([134217790 return 67108896 left 134217847 134217788 134217765 62 60 return 62 25 60 return 33 134217790 67108896 134217788 134217756] 0 "%d"))
+	 arg)))
 #+END_SRC
 
 * TODO Misc copied from old config
