@@ -720,7 +720,7 @@ Some of these configurations depend on external software:
   :init (if after-init-time
             (edit-server-start)
           (add-hook 'after-init-hook
-                    #'(lambda() (edit-server-start))))
+                    #'(lambda () (edit-server-start))))
   :config (progn
             (setq edit-server-new-frame nil)
             (setq edit-server-new-frame-alist
