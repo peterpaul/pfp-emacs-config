@@ -907,8 +907,11 @@ Some of these configurations depend on external software:
  :defer t
  :init
  (progn
-  (setq vterm-always-compile-module t)))
+  (setq vterm-always-compile-module t)
+  (when (init-command-exists-p 'fish)
+    (setq vterm-shell "/usr/bin/fish"))))
 #+END_SRC
+
 ** =eshell= customization
 
 #+BEGIN_SRC emacs-lisp
