@@ -125,11 +125,8 @@ Assuming that the code in custom-file is executed before the code ahead of this 
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
-(quelpa
- '(quelpa-use-package
-   :fetcher git
-   :url "https://github.com/quelpa/quelpa-use-package.git"))
-(require 'quelpa-use-package)
+(use-package quelpa-use-package
+  :ensure t)
 #+END_SRC
 
 ** Install =esup= startup profiler
