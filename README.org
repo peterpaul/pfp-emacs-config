@@ -1041,6 +1041,15 @@ Some of these configurations depend on external software:
 
 * Markup languages
 ** Org-mode
+*** Org Babel Restclient
+
+#+BEGIN_SRC emacs-lisp
+(use-package ob-restclient
+  :ensure t
+  :config
+  (add-to-list 'org-babel-load-languages `(restclient . t)))
+#+END_SRC
+
 *** =htmlize=
 
  #+BEGIN_SRC emacs-lisp
