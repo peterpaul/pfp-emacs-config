@@ -602,9 +602,10 @@ Some of these configurations depend on external software:
 
 #+BEGIN_SRC emacs-lisp
 (use-package lastpass
-  :ensure
+  :ensure t
   :if (init-command-exists-p 'lpass))
 (use-package lpass
+  :ensure t
   :if (init-command-exists-p 'lpass)
   :quelpa
   (lpass
