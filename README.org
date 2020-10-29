@@ -1299,11 +1299,11 @@ npm install -g @angular/language-service@next typescript  @angular/language-serv
 #+BEGIN_SRC emacs-lisp
 (setq lsp-clients-angular-language-server-command
   '("node"
-    "/usr/lib/node_modules/@angular/language-server"
+    "/usr/local/lib/node_modules/@angular/language-server"
     "--ngProbeLocations"
-    "/usr/lib/node_modules"
+    "/usr/local/lib/node_modules"
     "--tsProbeLocations"
-    "/usr/lib/node_modules"
+    "/usr/local/lib/node_modules"
     "--stdio"))
 #+END_SRC
 
