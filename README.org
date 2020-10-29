@@ -68,7 +68,7 @@ In order to optimize the startup time we will change the garbage collection sett
 (menu-bar-mode -1)
 (show-paren-mode 1)
 (setq-default indent-tabs-mode nil)
-(setq-default tab-width 4)
+(setq-default tab-width 2)
 #+END_SRC
 
 ** Enable linum for programming modes
@@ -1289,6 +1289,7 @@ Install [[https://github.com/michaelklishin/cucumber.el][=feature-mode=]] to edi
 #+BEGIN_SRC emacs-lisp
 (use-package ng2-mode
   :ensure t
+  :after (typescript-mode lsp)
   :config (with-eval-after-load 'typescript-mode (add-hook 'typescript-mode-hook #'lsp)))
 #+END_SRC
 
