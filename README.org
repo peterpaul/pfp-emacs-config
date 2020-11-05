@@ -1042,6 +1042,29 @@ Some of these configurations depend on external software:
 
 * Markup languages
 ** Org-mode
+*** Org mode customizations
+
+#+begin_src emacs-lisp
+(setq
+ org-agenda-files '("~/org/journal.org")
+ org-babel-load-languages '((emacs-lisp . t) (plantuml . t) (shell . t) (sql . t))
+ org-capture-templates
+   '(("t" "Todo" entry
+      (file+headline "~/org/todo.org" "Tasks")
+      "* TODO %?
+  %i
+  %a")
+     ("j" "Journal item" entry
+      (file+olp+datetree "~/org/journal.org")
+      "* %?
+Entered on %U
+  %i
+  %a" :jump-to-captured t :empty-lines-before 1 :empty-lines-after 1))
+ org-confirm-babel-evaluate nil
+ org-ditaa-jar-path "/usr/share/ditaa/ditaa.jar"
+ org-plantuml-jar-path "/home/peterpaulk/.emacs.d/plantuml.jar")
+#+end_src
+
 *** Org Babel Restclient
 
 #+BEGIN_SRC emacs-lisp
