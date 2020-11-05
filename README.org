@@ -1064,7 +1064,7 @@ Some of these configurations depend on external software:
 (use-package org-bullets
   :ensure t
   :after (org)
-  :commands (org-bullets-mode)
+  ;; :commands (org-bullets-mode)
   :config
   (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 #+END_SRC
@@ -1211,7 +1211,7 @@ Installation copied from: [[https://emacs-lsp.github.io/lsp-mode/page/installati
 
 #+BEGIN_SRC emacs-lisp
 ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
-(setq lsp-keymap-prefix "s-l")
+(setq lsp-keymap-prefix "C-c l")
 
 (use-package lsp-mode
     :ensure t
@@ -1238,7 +1238,8 @@ Installation copied from: [[https://emacs-lsp.github.io/lsp-mode/page/installati
  :commands lsp-ivy-workspace-symbol)
 (use-package lsp-treemacs
  :ensure t
- :commands lsp-treemacs-errors-list)
+ :commands lsp-treemacs-errors-list
+ :config (lsp-treemacs-sync-mode 1))
 
 ;; optionally if you want to use debugger
 (use-package dap-mode
