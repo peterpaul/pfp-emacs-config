@@ -442,7 +442,6 @@ Some of these configurations depend on external software:
 #+BEGIN_SRC emacs-lisp
 (use-package multiple-cursors
   :ensure t
-  :defer t
   :config
   (progn
     (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
@@ -452,7 +451,6 @@ Some of these configurations depend on external software:
     ))
 #+END_SRC
 
-*** TODO after startup the keybindings above don't work
 ** =yasnippet=
 
 #+BEGIN_SRC emacs-lisp
