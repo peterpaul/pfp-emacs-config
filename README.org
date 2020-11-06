@@ -573,6 +573,12 @@ Some of these configurations depend on external software:
 (global-set-key (kbd "M-<up>") 'init-move-line-up)
 (global-set-key (kbd "M-<down>") 'init-move-line-down)
 #+END_SRC
+** Configure =ediff=
+
+#+BEGIN_SRC emacs-lisp
+(setq ediff-window-setup-function 'ediff-setup-windows-plain)
+#+END_SRC
+
 
 * System utilities and tools
 ** Silver searcher
