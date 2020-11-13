@@ -276,6 +276,18 @@ Shortly highlights the cursor position when switching buffers.
   :config (beacon-mode 1))
 #+END_SRC
 
+** Install =sublimity=
+
+#+begin_src emacs-lisp
+(use-package sublimity
+  :ensure t
+  :config
+  (progn
+    (require 'sublimity-scroll)
+    (require 'sublimity-map)
+    (require 'sublimity-attractive)))
+#+end_src
+
 * Emacs user friendlyness
 ** =discover=
 
@@ -1151,6 +1163,29 @@ Entered on %U
                    (org-present-read-write))))))
 #+END_SRC
 
+*** Support Rust for Org-Babel
+
+Install =ob-rust=
+#+begin_src emacs-lisp
+(use-package ob-rust
+  :ensure t
+  :config
+  (add-to-list 'org-babel-load-languages `(rust . t)))
+#+end_src
+
+Install prerequisites:
+#+begin_src shell
+cargo install cargo-script
+#+end_src
+
+*** Support for typescript
+
+#+begin_src emacs-lisp
+(use-package ob-typescript
+  :ensure t
+  :config
+  (add-to-list 'org-babel-load-languages `(typescript . t)))
+#+end_src
 
 ** Markdown
 
