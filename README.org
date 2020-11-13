@@ -102,7 +102,7 @@ Assuming that the code in custom-file is executed before the code ahead of this 
 *** Add =melpa= to =package-archives=
 
 #+BEGIN_SRC emacs-lisp
-(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t)
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (add-to-list 'package-archive-priorities '("melpa" . 10) t)
 #+END_SRC
 
@@ -590,7 +590,6 @@ Some of these configurations depend on external software:
 #+BEGIN_SRC emacs-lisp
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
 #+END_SRC
-
 
 * System utilities and tools
 ** Silver searcher
