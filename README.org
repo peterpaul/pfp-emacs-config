@@ -280,6 +280,7 @@ Shortly highlights the cursor position when switching buffers.
 
 #+begin_src emacs-lisp
 (use-package sublimity
+  :disabled
   :ensure t
   :config
   (progn
