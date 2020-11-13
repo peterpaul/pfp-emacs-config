@@ -1580,6 +1580,10 @@ Nice package to automatically disassemble java .class files
   (require 'exwm-systemtray)
   (exwm-systemtray-enable)))
 #+END_SRC
+** Register =Emacs EXWM= in gdm3
+
+Install =gnome-flashback= and follow the instruction from: [[https://github.com/WJCFerguson/exwm-gnome-flashback.git][EXWM Gnome Flashback]]
+
 ** XRandr screen layouts
 
 #+BEGIN_SRC emacs-lisp
