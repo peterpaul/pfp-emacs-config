@@ -1078,7 +1078,7 @@ Entered on %U
   %a" :jump-to-captured t :empty-lines-before 1 :empty-lines-after 1))
  org-confirm-babel-evaluate nil
  org-ditaa-jar-path "/usr/share/ditaa/ditaa.jar"
- org-plantuml-jar-path "/home/peterpaulk/.emacs.d/plantuml.jar")
+ org-plantuml-jar-path (expand-file-name "~/.emacs.d/plantuml.jar"))
 #+end_src
 
 *** Org Babel Restclient
