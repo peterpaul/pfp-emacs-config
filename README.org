@@ -1056,6 +1056,13 @@ end
   :ensure t
   :config
   (eshell-git-prompt-use-theme 'powerline))
+
+(use-package eshell-syntax-highlighting
+  :after esh-mode
+  :ensure t
+  :config
+  ;; Enable in all Eshell buffers.
+  (eshell-syntax-highlighting-global-mode +1))
 #+END_SRC
 ** Multi terminal emulation
 
