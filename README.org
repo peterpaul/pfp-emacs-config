@@ -590,6 +590,15 @@ Some of these configurations depend on external software:
 
 #+BEGIN_SRC emacs-lisp
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
+
+(defun ediff-copy-both-to-C ()
+  (interactive)
+  (ediff-copy-diff ediff-current-difference nil 'C nil
+                   (concat
+                    (ediff-get-region-contents ediff-current-difference 'A ediff-control-buffer)
+                    (ediff-get-region-contents ediff-current-difference 'B ediff-control-buffer))))
+(defun add-d-to-ediff-mode-map () (define-key ediff-mode-map "d" 'ediff-copy-both-to-C))
+(add-hook 'ediff-keymap-setup-hook 'add-d-to-ediff-mode-map)
 #+END_SRC
 
 * System utilities and tools
@@ -815,6 +824,64 @@ Some of these configurations depend on external software:
   (interactive (list (completing-read "Connection: " (init-nm-get-connections))))
   (async-shell-command (format "nmcli con up id %s" connection)))
 #+END_SRC
+
+* Email
+
+Instructions followed from: [[https://www.chrislockard.net/posts/o365-mail-emacs-mbsync-mu4e/]]
+
+Documentation: [[https://www.djcbsoftware.nl/code/mu/mu4e/index.html]]
+
+Install =mu= and =mbsync=
+
+#+begin_src shell
+sudo apt install maildir-utils mu4e isync
+#+end_src
+
+=mbsync= configuration in file [[file:~/.mbsyncrc][~/.mbsyncrc]]
+
+#+begin_src emacs-lisp
+(use-package mu4e
+  :if (init-command-exists-p 'mu)
+  :config
+  (setq
+   mu4e-maildir (expand-file-name "~/.mail/work")
+   mu4e-get-mail-command "mbsync -a"
+   mu4e-index-update-in-background t
+   mu4e-compose-signature-auto-include t
+   mu4e-use-fancy-chars t
+   mu4e-view-show-addresses t
+   mu4e-view-show-images t
+   mu4e-compose-format-flowed t
+   mu4e-compose-in-new-frame nil
+   mu4e-change-filenames-when-moving t ;; http://pragmaticemacs.com/emacs/fixing-duplicate-uid-errors-when-using-mbsync-and-mu4e/
+   mu4e-maildir-shortcuts
+   '( ("/Inbox" . ?i)
+      ("/Archive" . ?a)
+      ("/Drafts" . ?d)
+      ("/Deleted Items" . ?t)
+      ("/Sent Items" . ?s))
+
+   ;; Message Formatting and sending
+   message-send-mail-function 'smtpmail-send-it
+   ;; message-signature-file "~/Documents/dotfiles/Emacs/.doom.d/.mailsignature"
+   ;; message-citation-line-format "On %a %d %b %Y at %R, %f wrote:\n"
+   ;; message-citation-line-function 'message-insert-formatted-citation-line
+   message-kill-buffer-on-exit t
+
+   ;; Org mu4e
+   org-mu4e-convert-to-html t
+
+   smtpmail-smtp-server     "smtp.office365.com"
+   smtpmail-smtp-service    587
+   smtpmail-stream-type     'starttls
+   smtpmail-debug-info      t
+   mu4e-update-interval     1800
+   ;; (mu4e-sent-messages-behavior . 'delete)
+   mu4e-sent-folder   "/Sent Items"
+   mu4e-drafts-folder "/Drafts"
+   mu4e-trash-folder  "/Deleted Items"
+   mu4e-refile-folder "/Archive"))
+#+end_src
 
 * File management
 ** Colorize =dired= with =diredfl=
