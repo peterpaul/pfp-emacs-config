@@ -1001,6 +1001,120 @@ sudo apt install maildir-utils mu4e isync
   (when (init-command-exists-p 'fish)
     (setq vterm-shell "/usr/bin/fish"))))
 #+END_SRC
+*** vterm: shell-side configuration
+
+From: [[https://github.com/akermu/emacs-libvterm#shell-side-configuration]]
+
+For =bash= or =zsh=, put this in your =.zshrc= or =.bashrc=:
+
+#+begin_src shell
+vterm_printf(){
+    if [ -n "$TMUX" ]; then
+        # Tell tmux to pass the escape sequences through
+        # (Source: http://permalink.gmane.org/gmane.comp.terminal-emulators.tmux.user/1324)
+        printf "\ePtmux;\e\e]%s\007\e\\" "$1"
+    elif [ "${TERM%%-*}" = "screen" ]; then
+        # GNU screen (screen, screen-256color, screen-256color-bce)
+        printf "\eP\e]%s\007\e\\" "$1"
+    else
+        printf "\e]%s\e\\" "$1"
+    fi
+}
+
+vterm_cmd() {
+    local vterm_elisp
+    vterm_elisp=""
+    while [ $# -gt 0 ]; do
+        vterm_elisp="$vterm_elisp""$(printf '"%s" ' "$(printf "%s" "$1" | sed -e 's|\\|\\\\|g' -e 's|"|\\"|g')")"
+        shift
+    done
+    vterm_printf "51;E$vterm_elisp"
+}
+
+if [[ "$INSIDE_EMACS" = 'vterm' ]]; then
+    function clear(){
+        vterm_printf "51;Evterm-clear-scrollback";
+        tput clear;
+    }
+fi
+
+PROMPT_COMMAND='echo -ne "\033]0;${HOSTNAME}:${PWD}\007"'
+
+vterm_prompt_end(){
+    vterm_printf "51;A$(whoami)@$(hostname):$(pwd)"
+}
+PS1=$PS1'\[$(vterm_prompt_end)\]'
+
+find_file() {
+    vterm_cmd find-file "$(realpath "${@:-.}")"
+}
+
+say() {
+    vterm_cmd message "%s" "$*"
+}
+#+end_src
+
+#+RESULTS:
+
+For =fish= put this in your =~/.config/fish/config.fish=:
+#+begin_src shell
+function vterm_printf;
+    if [ -n "$TMUX" ]
+        # tell tmux to pass the escape sequences through
+        # (Source: http://permalink.gmane.org/gmane.comp.terminal-emulators.tmux.user/1324)
+        printf "\ePtmux;\e\e]%s\007\e\\" "$argv"
+    else if string match -q -- "screen*" "$TERM"
+        # GNU screen (screen, screen-256color, screen-256color-bce)
+        printf "\eP\e]%s\007\e\\" "$argv"
+    else
+        printf "\e]%s\e\\" "$argv"
+    end
+end
+
+function vterm_cmd --description 'Run an emacs command among the ones been defined in vterm-eval-cmds.'
+    set -l vterm_elisp ()
+    for arg in $argv
+        set -a vterm_elisp (printf '"%s" ' (string replace -a -r '([\\\\"])' '\\\\\\\\$1' $arg))
+    end
+    vterm_printf '51;E'(string join '' $vterm_elisp)
+end
+
+if [ "$INSIDE_EMACS" = 'vterm' ]
+    function clear
+        vterm_printf "51;Evterm-clear-scrollback";
+        tput clear;
+    end
+end
+
+function fish_title
+    hostname
+    echo ":"
+    pwd
+end
+
+function vterm_prompt_end;
+    vterm_printf '51;A'(whoami)'@'(hostname)':'(pwd)
+end
+functions --copy fish_prompt vterm_old_fish_prompt
+function fish_prompt --description 'Write out the prompt; do not replace this. Instead, put this at end of your file.'
+    # Remove the trailing newline from the original prompt. This is done
+    # using the string builtin from fish, but to make sure any escape codes
+    # are correctly interpreted, use %b for printf.
+    printf "%b" (string join "\n" (vterm_old_fish_prompt))
+    vterm_prompt_end
+end
+
+function find_file
+    set -q argv[1]; or set argv[1] "."
+    vterm_cmd find-file (realpath "$argv")
+end
+
+function say
+    vterm_cmd message "%s" "$argv"
+end
+#+end_src
+
+#+RESULTS:
 
 ** =eshell= customization
 
@@ -1009,6 +1123,13 @@ sudo apt install maildir-utils mu4e isync
   :ensure t
   :config
   (eshell-git-prompt-use-theme 'powerline))
+
+(use-package eshell-syntax-highlighting
+  :after esh-mode
+  :ensure t
+  :config
+  ;; Enable in all Eshell buffers.
+  (eshell-syntax-highlighting-global-mode +1))
 #+END_SRC
 ** Multi terminal emulation
 
@@ -1520,6 +1641,25 @@ Nice package to automatically disassemble java .class files
   :config
   (add-hook 'haskell-mode-hook 'intero-mode))
 #+END_SRC
+
+** SQL
+
+Automatically uppercase sql keywords:
+#+begin_src emacs-lisp
+(use-package sqlup-mode
+  :ensure t
+  :init
+  ;; Capitalize keywords in SQL mode
+  (add-hook 'sql-mode-hook 'sqlup-mode)
+  ;; Capitalize keywords in an interactive session (e.g. psql)
+  (add-hook 'sql-interactive-mode-hook 'sqlup-mode)
+  ;; Set a global keyword to use sqlup on a region
+  ;; (global-set-key (kbd "C-c u") 'sqlup-capitalize-keywords-in-region)
+)
+#+end_src
+
+#+RESULTS:
+
 
 * EXWM Window Manager
 ** Install =exwm=
