@@ -1416,6 +1416,13 @@ cargo install cargo-script
  :defer t)
 #+END_SRC
 
+** epub
+
+#+begin_src emacs-lisp
+(use-package nov
+  :ensure t)
+#+end_src
+
 * Programming
 ** Emacs Lisp
 
