@@ -589,6 +589,7 @@ Some of these configurations depend on external software:
 ** Configure =ediff=
 
 #+BEGIN_SRC emacs-lisp
+(require 'ediff)
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
 
 (defun ediff-copy-both-to-C ()
@@ -840,47 +841,47 @@ sudo apt install maildir-utils mu4e isync
 =mbsync= configuration in file [[file:~/.mbsyncrc][~/.mbsyncrc]]
 
 #+begin_src emacs-lisp
-(use-package mu4e
-  :if (init-command-exists-p 'mu)
-  :config
-  (setq
-   mu4e-maildir (expand-file-name "~/.mail/work")
-   mu4e-get-mail-command "mbsync -a"
-   mu4e-index-update-in-background t
-   mu4e-compose-signature-auto-include t
-   mu4e-use-fancy-chars t
-   mu4e-view-show-addresses t
-   mu4e-view-show-images t
-   mu4e-compose-format-flowed t
-   mu4e-compose-in-new-frame nil
-   mu4e-change-filenames-when-moving t ;; http://pragmaticemacs.com/emacs/fixing-duplicate-uid-errors-when-using-mbsync-and-mu4e/
-   mu4e-maildir-shortcuts
-   '( ("/Inbox" . ?i)
-      ("/Archive" . ?a)
-      ("/Drafts" . ?d)
-      ("/Deleted Items" . ?t)
-      ("/Sent Items" . ?s))
+  (when (init-command-exists-p 'mu)
+    (use-package mu4e
+      :config
+      (setq
+       mu4e-maildir (expand-file-name "~/.mail/work")
+       mu4e-get-mail-command "mbsync -a"
+       mu4e-index-update-in-background t
+       mu4e-compose-signature-auto-include t
+       mu4e-use-fancy-chars t
+       mu4e-view-show-addresses t
+       mu4e-view-show-images t
+       mu4e-compose-format-flowed t
+       mu4e-compose-in-new-frame nil
+       mu4e-change-filenames-when-moving t ;; http://pragmaticemacs.com/emacs/fixing-duplicate-uid-errors-when-using-mbsync-and-mu4e/
+       mu4e-maildir-shortcuts
+       '( ("/Inbox" . ?i)
+          ("/Archive" . ?a)
+          ("/Drafts" . ?d)
+          ("/Deleted Items" . ?t)
+          ("/Sent Items" . ?s))
 
-   ;; Message Formatting and sending
-   message-send-mail-function 'smtpmail-send-it
-   ;; message-signature-file "~/Documents/dotfiles/Emacs/.doom.d/.mailsignature"
-   ;; message-citation-line-format "On %a %d %b %Y at %R, %f wrote:\n"
-   ;; message-citation-line-function 'message-insert-formatted-citation-line
-   message-kill-buffer-on-exit t
+       ;; Message Formatting and sending
+       message-send-mail-function 'smtpmail-send-it
+       ;; message-signature-file "~/Documents/dotfiles/Emacs/.doom.d/.mailsignature"
+       ;; message-citation-line-format "On %a %d %b %Y at %R, %f wrote:\n"
+       ;; message-citation-line-function 'message-insert-formatted-citation-line
+       message-kill-buffer-on-exit t
 
-   ;; Org mu4e
-   org-mu4e-convert-to-html t
+       ;; Org mu4e
+       org-mu4e-convert-to-html t
 
-   smtpmail-smtp-server     "smtp.office365.com"
-   smtpmail-smtp-service    587
-   smtpmail-stream-type     'starttls
-   smtpmail-debug-info      t
-   mu4e-update-interval     1800
-   ;; (mu4e-sent-messages-behavior . 'delete)
-   mu4e-sent-folder   "/Sent Items"
-   mu4e-drafts-folder "/Drafts"
-   mu4e-trash-folder  "/Deleted Items"
-   mu4e-refile-folder "/Archive"))
+       smtpmail-smtp-server     "smtp.office365.com"
+       smtpmail-smtp-service    587
+       smtpmail-stream-type     'starttls
+       smtpmail-debug-info      t
+       mu4e-update-interval     1800
+       ;; (mu4e-sent-messages-behavior . 'delete)
+       mu4e-sent-folder   "/Sent Items"
+       mu4e-drafts-folder "/Drafts"
+       mu4e-trash-folder  "/Deleted Items"
+       mu4e-refile-folder "/Archive")))
 #+end_src
 
 * File management
@@ -1605,7 +1606,7 @@ Nice package to automatically disassemble java .class files
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-java
   :if (init-command-exists-p 'javac)
-  :after (lsp-mode)
+  :after (lsp-mode lsp-ui)
   :defer 3
   :init
   (progn
