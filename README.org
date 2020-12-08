@@ -709,6 +709,7 @@ Some of these configurations depend on external software:
 
 - Reference Guide: [[http://plantuml.com/PlantUML_Language_Reference_Guide.pdf]]
 - Download from: [[https://sourceforge.net/projects/plantuml/files/plantuml.jar/download]]
+- Cheatsheet: [[https://blog.anoff.io/puml-cheatsheet.pdf]]
 
 #+BEGIN_SRC emacs-lisp
 (use-package plantuml-mode
