@@ -1239,6 +1239,22 @@ end
 (use-package json-mode
  :ensure t)
 #+END_SRC
+** XML files
+
+Function to pretty print the active region.
+
+#+begin_src emacs-lisp
+  (defun init-prettyprint-xml (start end)
+    "Prettyprint xml in active region."
+    (interactive
+     (list (region-beginning) (region-end)))
+    (if (init-command-exists-p 'xmllint)
+        (shell-command-on-region start end "xmllint --format -"
+                                 nil
+                                 't)
+      (message "'xmllint' not installed, please install with 'sudo apt install libxml2-utils'")))
+#+end_src
+
 ** log files
 
 #+BEGIN_SRC emacs-lisp
@@ -1669,7 +1685,6 @@ Automatically uppercase sql keywords:
 
 #+RESULTS:
 
-
 * EXWM Window Manager
 ** Install =exwm=
 
@@ -1850,20 +1865,6 @@ Start server if not running
 #+BEGIN_SRC emacs-lisp
 (load "server")
 (unless (server-running-p) (server-start))
-#+END_SRC
-
-* Macros
-
-** Pretty print xml
-
-#+BEGIN_SRC emacs-lisp
-(fset 'init-macro-prettyprint-xml
-      (lambda (&optional arg)
-	"Format and indent xml."
-	(interactive "p")
-	(kmacro-exec-ring-item
-	 (quote ([134217790 return 67108896 left 134217847 134217788 134217765 62 60 return 62 25 60 return 33 134217790 67108896 134217788 134217756] 0 "%d"))
-	 arg)))
 #+END_SRC
 
 * TODO Misc copied from old config
