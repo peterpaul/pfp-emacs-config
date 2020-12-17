@@ -502,6 +502,13 @@ Some of these configurations depend on external software:
   :config
   (editorconfig-mode 1))
 #+END_SRC
+** =edit-indirect=
+
+#+begin_src emacs-lisp
+(use-package edit-indirect
+  :ensure t)
+#+end_src
+
 ** Code completion with =company=
 
 #+BEGIN_SRC emacs-lisp
@@ -948,6 +955,13 @@ sudo apt install maildir-utils mu4e isync
  :if (init-command-exists-p 'git)
  :defer t)
 #+END_SRC
+**** treemacs-magit
+
+#+begin_src emacs-lisp
+  (use-package treemacs-magit
+    :ensure t)
+#+end_src
+
 
 *** Install =forge=
 
