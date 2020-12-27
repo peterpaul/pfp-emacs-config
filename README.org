@@ -834,6 +834,15 @@ Some of these configurations depend on external software:
   (async-shell-command (format "nmcli con up id %s" connection)))
 #+END_SRC
 
+** ledger - double accounting tool
+
+#+begin_src emacs-lisp
+(use-package ledger-mode
+  :ensure t
+  :if (init-command-exists-p 'ledger)
+  :config (add-to-list 'auto-mode-alist '("\\.ledger$" . ledger-mode)))
+#+end_src
+
 * Email
 
 Instructions followed from: [[https://www.chrislockard.net/posts/o365-mail-emacs-mbsync-mu4e/]]
