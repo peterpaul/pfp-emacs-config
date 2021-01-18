@@ -675,6 +675,15 @@ Some of these configurations depend on external software:
   :bind ("C-c d" . docker))
 #+END_SRC
 
+Editing and using dockerfiles
+#+begin_src emacs-lisp
+  (use-package dockerfile-mode
+    :ensure t
+    :if (init-command-exists-p 'docker)
+    :config
+    (add-to-list 'auto-mode-alist '("Dockerfile\\'" . dockerfile-mode)))
+#+end_src
+
 ** Vagrant
 
 #+BEGIN_SRC emacs-lisp
@@ -968,6 +977,7 @@ sudo apt install maildir-utils mu4e isync
 
 #+begin_src emacs-lisp
   (use-package treemacs-magit
+    :disabled
     :ensure t)
 #+end_src
 
