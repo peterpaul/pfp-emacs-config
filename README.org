@@ -959,6 +959,7 @@ sudo apt install maildir-utils mu4e isync
 
 #+begin_src emacs-lisp
   (use-package treemacs-magit
+    :disabled
     :ensure t)
 #+end_src
 
