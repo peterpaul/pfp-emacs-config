@@ -294,7 +294,9 @@ Shortly highlights the cursor position when switching buffers.
 #+begin_src emacs-lisp
   (use-package ligature
     :ensure t
-    :if (s-contains? "HARFBUZZ" system-configuration-features)
+    :if (and
+         (s-contains? "HARFBUZZ" system-configuration-features)
+         (display-graphic-p))
     :quelpa (ligature
              :fetcher github
              :repo "mickeynp/ligature.el")
