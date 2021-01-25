@@ -295,6 +295,9 @@ Shortly highlights the cursor position when switching buffers.
   (use-package ligature
     :ensure t
     :if (s-contains? "HARFBUZZ" system-configuration-features)
+    :quelpa (ligature
+             :fetcher github
+             :repo "mickeynp/ligature.el")
     :config (progn
               ;; Enable the www ligature in every possible major mode
               (ligature-set-ligatures 't '("www"))
