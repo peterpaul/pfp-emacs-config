@@ -1477,6 +1477,33 @@ cargo install cargo-script
   (add-to-list 'org-babel-load-languages `(typescript . t)))
 #+end_src
 
+*** Hide blocks
+
+Hide blocks with the ~:hidden~ attribute.
+
+#+BEGIN_SRC emacs-lisp :hidden
+(defun individual-visibility-source-blocks ()
+  "Fold some blocks in the current buffer."
+  (interactive)
+  (org-show-block-all)
+  (org-block-map
+   (lambda ()
+     (let ((case-fold-search t))
+       (when (and
+              (save-excursion
+                (beginning-of-line 1)
+                (looking-at org-block-regexp))
+              (cl-assoc
+               ':hidden
+               (cl-third
+                (org-babel-get-src-block-info))))
+         (org-hide-block-toggle))))))
+
+(add-hook
+ 'org-mode-hook
+ (function individual-visibility-source-blocks))
+#+END_SRC
+
 ** Markdown
 
  #+BEGIN_SRC emacs-lisp
