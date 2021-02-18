@@ -1284,6 +1284,24 @@ end
   (bash-completion-setup))
 #+END_SRC
 
+** Bash customization
+
+*** Create a tmp in the users dir.
+
+Put the following in =~/.profile=
+#+begin_src shell
+# Create user specific tmp
+if [ ! -e "$HOME/tmp" ]; then
+    rm -f "$HOME/tmp"
+    if [ ! -d "/tmp/$USER-tmp" ]; then
+        rm -rf "/tmp/$USER-tmp"
+        mkdir "/tmp/$USER-tmp"
+    fi
+    ln -s "/tmp/$USER-tmp" "$HOME/tmp"
+fi
+#+end_src
+
+
 * Web
 
 ** =restclient=
