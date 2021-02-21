@@ -518,15 +518,23 @@ Some of these configurations depend on external software:
 ** =yasnippet=
 
 #+BEGIN_SRC emacs-lisp
+(defcustom init-snippets-directories
+  '("~/.emacs.d/snippets")
+  "List of directories with additional yasnippet snippets."
+  :type '(repeat directory)
+  :group 'init)
+
 (require 'f)
-(unless (f-directory? "~/.emacs.d/snippets")
- (mkdir "~/.emacs.d/snippets"))
+(dolist (dir init-snippets-directories)
+  (unless (f-directory? dir)
+    (mkdir dir)))
 
 (use-package yasnippet
   :ensure t
   :config
   (progn
-    (yas-load-directory "~/.emacs.d/snippets")
+    (dolist (dir init-snippets-directories)
+      (yas-load-directory dir))
     (yas-global-mode 1)))
 
 (use-package yasnippet-snippets
