@@ -693,16 +693,16 @@ Some of these configurations depend on external software:
 ** Lastpass
 
 #+BEGIN_SRC emacs-lisp
-(use-package lastpass
-  :ensure t
-  :if (init-command-exists-p 'lpass))
-(use-package lpass
-  :ensure t
-  :if (init-command-exists-p 'lpass)
-  :quelpa
-  (lpass
-    :fetcher github
-    :repo "peterpaul/lpass"))
+  (use-package lastpass
+    :ensure t
+    :if (init-command-exists-p 'lpass))
+  (when (init-command-exists-p 'lpass)
+    (use-package lpass
+      :ensure t
+      :quelpa
+      (lpass
+       :fetcher github
+       :repo "peterpaul/lpass")))
 #+END_SRC
 
 ** Gnuplot
