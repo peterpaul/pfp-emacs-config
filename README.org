@@ -999,14 +999,15 @@ sudo apt install maildir-utils mu4e isync
 ** Sunrise commander
 
 #+BEGIN_SRC emacs-lisp
-(use-package sunrise-commander
-  :quelpa (sunrise-commander :fetcher github :repo "escherdragon/sunrise-commander")
-  :custom
-  (sr-windows-default-ratio 75)
-  :config
-  (when (display-graphic-p)
-    (require 'sunrise-x-buttons)
-    (require 'sunrise-x-modeline)))
+  (use-package sunrise
+    :ensure t
+    :quelpa (sunrise :fetcher github :repo "sunrise-commander/sunrise-commander")
+    :custom
+    (sunrise-windows-default-ratio 75)
+    :config
+    (when (display-graphic-p)
+      (require 'sunrise-buttons)
+      (require 'sunrise-modeline)))
 #+END_SRC
 
 * Version Control
