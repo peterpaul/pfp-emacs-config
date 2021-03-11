@@ -2,7 +2,7 @@
 
 This is my literate Emacs configuration. All my Emacs configuration is embedded in this file as Emacs Lisp code blocks. To bootstrap this solution, my "regular" =init.el= file contains just a single line:
 
-#+BEGIN_SRC elisp
+#+BEGIN_SRC
 (org-babel-load-file "~/.emacs.d/README.org")
 #+END_SRC
 
