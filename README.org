@@ -391,7 +391,6 @@ Shortly highlights the cursor position when switching buffers.
     (global-set-key (kbd "C-h C") #'helpful-command)))
 #+END_SRC
 
-
 ** Install =restart-emacs=
 
 #+BEGIN_SRC emacs-lisp
@@ -1046,7 +1045,6 @@ sudo apt install maildir-utils mu4e isync
     :ensure t)
 #+end_src
 
-
 *** Install =forge=
 
 #+BEGIN_SRC emacs-lisp
@@ -1312,7 +1310,6 @@ if [ ! -e "$HOME/tmp" ]; then
     ln -s "/tmp/$USER-tmp" "$HOME/tmp"
 fi
 #+end_src
-
 
 * Web
 
