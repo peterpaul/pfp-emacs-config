@@ -1090,69 +1090,29 @@ sudo apt install maildir-utils mu4e isync
 ** Install =vterm=
 
 #+BEGIN_SRC emacs-lisp
-(use-package vterm
- :ensure t
- :defer t
- :init
- (progn
-  (setq vterm-always-compile-module t)
-  (when (init-command-exists-p 'fish)
-    (setq vterm-shell "/usr/bin/fish"))))
+  (use-package vterm
+    :ensure t
+    :defer t
+    :init (progn
+            (setq vterm-always-compile-module t)
+            (when (init-command-exists-p 'fish)
+              (setq vterm-shell "/usr/bin/fish")))
+    :custom (vterm-buffer-name-string "vterm %s"))
 #+END_SRC
 *** vterm: shell-side configuration
 
 From: [[https://github.com/akermu/emacs-libvterm#shell-side-configuration]]
 
-For =bash= or =zsh=, put this in your =.zshrc= or =.bashrc=:
+For =bash=, put this in your =.bashrc=:
 
 #+begin_src shell
-vterm_printf(){
-    if [ -n "$TMUX" ]; then
-        # Tell tmux to pass the escape sequences through
-        # (Source: http://permalink.gmane.org/gmane.comp.terminal-emulators.tmux.user/1324)
-        printf "\ePtmux;\e\e]%s\007\e\\" "$1"
-    elif [ "${TERM%%-*}" = "screen" ]; then
-        # GNU screen (screen, screen-256color, screen-256color-bce)
-        printf "\eP\e]%s\007\e\\" "$1"
-    else
-        printf "\e]%s\e\\" "$1"
-    fi
-}
-
-vterm_cmd() {
-    local vterm_elisp
-    vterm_elisp=""
-    while [ $# -gt 0 ]; do
-        vterm_elisp="$vterm_elisp""$(printf '"%s" ' "$(printf "%s" "$1" | sed -e 's|\\|\\\\|g' -e 's|"|\\"|g')")"
-        shift
-    done
-    vterm_printf "51;E$vterm_elisp"
-}
-
-if [[ "$INSIDE_EMACS" = 'vterm' ]]; then
-    function clear(){
-        vterm_printf "51;Evterm-clear-scrollback";
-        tput clear;
-    }
-fi
-
-PROMPT_COMMAND='echo -ne "\033]0;${HOSTNAME}:${PWD}\007"'
-
-vterm_prompt_end(){
-    vterm_printf "51;A$(whoami)@$(hostname):$(pwd)"
-}
-PS1=$PS1'\[$(vterm_prompt_end)\]'
-
-find_file() {
-    vterm_cmd find-file "$(realpath "${@:-.}")"
-}
-
-say() {
-    vterm_cmd message "%s" "$*"
-}
+  # Source vterm bash support when in emacs
+  if [[ "$INSIDE_EMACS" = 'vterm' ]] \
+         && [[ -n ${EMACS_VTERM_PATH} ]] \
+         && [[ -f ${EMACS_VTERM_PATH}/etc/emacs-vterm-bash.sh ]]; then
+      . ${EMACS_VTERM_PATH}/etc/emacs-vterm-bash.sh
+  fi
 #+end_src
-
-#+RESULTS:
 
 For =fish= put this in your =~/.config/fish/config.fish=:
 #+begin_src shell
@@ -1193,7 +1153,9 @@ end
 function vterm_prompt_end;
     vterm_printf '51;A'(whoami)'@'(hostname)':'(pwd)
 end
+
 functions --copy fish_prompt vterm_old_fish_prompt
+
 function fish_prompt --description 'Write out the prompt; do not replace this. Instead, put this at end of your file.'
     # Remove the trailing newline from the original prompt. This is done
     # using the string builtin from fish, but to make sure any escape codes
@@ -1398,6 +1360,8 @@ Entered on %U
  org-confirm-babel-evaluate nil
  org-ditaa-jar-path "/usr/share/ditaa/ditaa.jar"
  org-plantuml-jar-path (expand-file-name "~/.emacs.d/plantuml.jar"))
+
+(require 'ob-shell)
 #+end_src
 
 *** Org Babel Restclient
