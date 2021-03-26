@@ -1337,6 +1337,15 @@ Function to pretty print the active region.
  :ensure t)
 #+END_SRC
 
+** PDF files
+
+#+begin_src emacs-lisp
+  (use-package pdf-tools
+    :ensure t)
+#+end_src
+
+#+RESULTS:
+
 * Markup languages
 ** Org-mode
 *** Org mode customizations
