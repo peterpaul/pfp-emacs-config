@@ -1515,6 +1515,33 @@ Hide blocks with the ~:hidden~ attribute.
  (function individual-visibility-source-blocks))
 #+END_SRC
 
+*** Beamer customizations
+
+The following settings are required to have syntax highlighted code
+block when exporting an org document to PDF. In your org document put
+the following lines:
+
+#+begin_src org
+#+latex_header: \usepackage{minted}
+#+latex_header: \usemintedstyle{solarized-light}
+#+latex_header: \newminted{common-lisp}{fontsize=\footnotesize}
+#+end_src
+
+#+begin_src emacs-lisp
+  (require 'org)
+  (require 'ox-latex)
+  (add-to-list 'org-latex-packages-alist '("" "minted"))
+  (setq org-latex-listings 'minted)
+
+  (setq org-latex-pdf-process
+        '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+          "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+          "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+
+  (setq org-src-fontify-natively t)
+#+end_src
+
+
 ** Markdown
 
  #+BEGIN_SRC emacs-lisp
