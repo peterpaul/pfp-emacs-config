@@ -1847,6 +1847,15 @@ Automatically uppercase sql keywords:
 
 #+RESULTS:
 
+** LaTeX
+
+#+begin_src emacs-lisp
+  (use-package auctex
+    :ensure t)
+#+end_src
+
+#+RESULTS:
+
 * EXWM Window Manager
 ** Install =exwm=
 
