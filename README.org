@@ -1087,6 +1087,15 @@ sudo apt install maildir-utils mu4e isync
 #+END_SRC
 
 * Terminals
+** Set exec-path from shell
+
+#+begin_src emacs-lisp
+  (use-package exec-path-from-shell
+    :ensure t
+    :config (when (memq window-system '(mac ns x))
+              (exec-path-from-shell-initialize)))
+#+end_src
+
 ** Install =vterm=
 
 #+BEGIN_SRC emacs-lisp
