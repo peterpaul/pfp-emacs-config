@@ -1850,8 +1850,8 @@ Automatically uppercase sql keywords:
 ** LaTeX
 
 #+begin_src emacs-lisp
-  (use-package auctex
-    :ensure t)
+  (use-package latex
+    :ensure auctex)
 #+end_src
 
 #+RESULTS:
