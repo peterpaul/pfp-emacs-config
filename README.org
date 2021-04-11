@@ -1596,9 +1596,11 @@ the following lines:
     :ensure t
     :config
     (progn
-      (setq nov-text-width nil)
       (add-hook 'nov-mode-hook 'my-nov-font-setup)
-      (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))))
+      (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode)))
+    :custom
+    (nov-text-width 80)
+    (nov-variable-pitch t))
 #+end_src
 
 * Programming
