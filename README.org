@@ -1054,6 +1054,18 @@ sudo apt install maildir-utils mu4e isync
   :after (magit))
 #+END_SRC
 
+*** Install =magit-todos=
+
+#+begin_src emacs-lisp
+  (use-package magit-todos
+    :ensure t
+    :if (and
+         (init-command-exists-p 'git)
+         (init-command-exists-p 'rg))
+    :after (magit)
+    :config (magit-todos-mode))
+#+end_src
+
 ** Mercurial
 
 *** Install =monky=
