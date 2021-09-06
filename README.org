@@ -988,6 +988,22 @@ sudo apt install maildir-utils mu4e isync
  (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
 #+END_SRC
 
+** Hide dot files in =dired=
+
+#+begin_src emacs-lisp
+  (defun my-dired-mode-hook ()
+    "My `dired' mode hook."
+    ;; To hide dot-files by default
+    (dired-hide-dotfiles-mode))
+
+  (use-package dired-hide-dotfiles
+    :ensure t
+    :config (progn
+              ;; To toggle hiding
+              (define-key dired-mode-map "." #'dired-hide-dotfiles-mode)
+              (add-hook 'dired-mode-hook #'my-dired-mode-hook)))
+#+end_src
+
 ** Install =treemacs=
 
 #+BEGIN_SRC emacs-lisp
