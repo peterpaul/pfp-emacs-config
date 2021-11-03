@@ -202,6 +202,16 @@ will only work on systems where the command =command= exists."
       (eq retval 0))))
 #+END_SRC
 
+** =init-call-process-string=
+
+#+begin_src emacs-lisp
+  (defun init-call-process-string (program &rest args)
+    "Call process `PROGRAM' with `ARGS' and return the output as string."
+    (with-temp-buffer
+      (apply #'call-process program nil t nil args)
+      (buffer-string)))
+#+end_src
+
 * Look and Feel
 ** Install =all-the-icons=
 
@@ -218,26 +228,61 @@ To use =all-the-icons=, one must run =M-x all-the-icons-install-fonts=.
 From [[https://github.com/hlissner/emacs-doom-themes]]
 
 #+BEGIN_SRC emacs-lisp
-(use-package doom-themes
- :after (treemacs)
- :ensure t
- :config
- ;; Global settings (defaults)
- (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-       doom-themes-enable-italic t) ; if nil, italics is universally disabled
- (load-theme 'doom-nord t)
+  (use-package dbus
+    :ensure t)
 
- ;; Enable flashing mode-line on errors
- (doom-themes-visual-bell-config)
+  (use-package doom-themes
+    :after (treemacs)
+    :ensure t
+    :config
+    ;; Global settings (defaults)
+    (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+          doom-themes-enable-italic t) ; if nil, italics is universally disabled
 
- ;; Enable custom neotree theme (all-the-icons must be installed!)
- ;; (doom-themes-neotree-config)
- ;; or for treemacs users
- (setq doom-themes-treemacs-theme "doom-colors") ; use the colorful treemacs theme
- (doom-themes-treemacs-config)
+    ;; Enable flashing mode-line on errors
+    (doom-themes-visual-bell-config)
 
- ;; Corrects (and improves) org-mode's native fontification.
- (doom-themes-org-config))
+    ;; Enable custom neotree theme (all-the-icons must be installed!)
+    ;; (doom-themes-neotree-config)
+    ;; or for treemacs users
+    (setq doom-themes-treemacs-theme "doom-colors") ; use the colorful treemacs theme
+    (doom-themes-treemacs-config)
+
+    ;; Corrects (and improves) org-mode's native fontification.
+    (doom-themes-org-config)
+
+    ;; TODO Define preferred light an dark themes as customization option
+    (defun set-doom-theme-from-gtk ()
+      "Set doom theme by checking whether GTK theme is dark."
+      (let ((gtk-theme (downcase
+                        (init-call-process-string "gsettings"
+                                                  "get"
+                                                  "org.gnome.desktop.interface"
+                                                  "gtk-theme"))))
+        (if (or (string-match-p "dark"  gtk-theme)
+                (string-match-p "black" gtk-theme))
+            (progn
+              (disable-theme 'doom-one-light)
+              (load-theme 'doom-nord t))
+          (progn
+            (disable-theme 'doom-nord)
+            (load-theme 'doom-one-light t)))))
+
+    (defun gtk-theme-changed (path _ _)
+      "DBus handler to detect when the GTK theme has changed."
+      (when (string-equal path "/org/gnome/desktop/interface/gtk-theme")
+        (set-doom-theme-from-gtk)))
+
+    ;; Register the DBus handler
+    (dbus-register-signal
+     :session
+     "ca.desrt.dconf"
+     "/ca/desrt/dconf/Writer/user"
+     "ca.desrt.dconf.Writer"
+     "Notify"
+     #'gtk-theme-changed)
+
+    (set-doom-theme-from-gtk))
 #+END_SRC
 
 ** Install =doom-modeline=
