@@ -3,7 +3,7 @@
 This is my literate Emacs configuration. All my Emacs configuration is embedded in this file as Emacs Lisp code blocks. To bootstrap this solution, my "regular" =init.el= file contains just a single line:
 
 #+BEGIN_SRC
-(org-babel-load-file "~/.emacs.d/README.org")
+  (org-babel-load-file (expand-file-name "README.org" user-emacs-directory))
 #+END_SRC
 
 The function =org-babel-load-file= extracts all Emacs Lisp code blocks into the file =README.el= and loads it.
@@ -140,6 +140,13 @@ Assuming that the code in custom-file is executed before the code ahead of this 
 * Utility functions
 ** Install =memoize=
 
+Memoize is used by some utility functions.
+
+#+BEGIN_SRC emacs-lisp
+(use-package memoize
+ :ensure t)
+#+END_SRC
+
 =memoize= is a great library that can memoize functions.
 
 For example the following code produces the output below.
@@ -169,13 +176,6 @@ For example the following code produces the output below.
 
 25
 #+end_example
-
-Memoize is used by some utility functions.
-
-#+BEGIN_SRC emacs-lisp
-(use-package memoize
- :ensure t)
-#+END_SRC
 
 ** =init-recompile-user-dir=
 
@@ -517,28 +517,28 @@ Some of these configurations depend on external software:
 ** =yasnippet=
 
 #+BEGIN_SRC emacs-lisp
-(defcustom init-snippets-directories
-  '("~/.emacs.d/snippets")
-  "List of directories with additional yasnippet snippets."
-  :type '(repeat directory)
-  :group 'init)
+  (defcustom init-snippets-directories
+    (list (expand-file-name "snippets" user-emacs-directory))
+    "List of directories with additional yasnippet snippets."
+    :type '(repeat directory)
+    :group 'init)
 
-(require 'f)
-(dolist (dir init-snippets-directories)
-  (unless (f-directory? dir)
-    (mkdir dir)))
+  (require 'f)
+  (dolist (dir init-snippets-directories)
+    (unless (f-directory? dir)
+      (mkdir dir)))
 
-(use-package yasnippet
-  :ensure t
-  :config
-  (progn
-    (dolist (dir init-snippets-directories)
-      (yas-load-directory dir))
-    (yas-global-mode 1)))
+  (use-package yasnippet
+    :ensure t
+    :config
+    (progn
+      (dolist (dir init-snippets-directories)
+        (yas-load-directory dir))
+      (yas-global-mode 1)))
 
-(use-package yasnippet-snippets
-  :ensure t
-  :after (yasnippet))
+  (use-package yasnippet-snippets
+    :ensure t
+    :after (yasnippet))
 #+END_SRC
 ** =string-inflection=
 
@@ -855,32 +855,32 @@ Editing and using dockerfiles
 ** Slack
 
 #+BEGIN_SRC emacs-lisp
-(use-package slack
-  :ensure t
-  :commands (slack-start)
-  :init
-  (setq slack-buffer-emojify t) ;; if you want to enable emoji, default nil
-  (setq slack-prefer-current-team t)
-  :config
-  (let ((file "~/.emacs.d/slack-teams.el"))
-  (if (f-exists? file)
-	(load file)
-    (progn
-      (f-touch file)
-      (f-write ";;; slack-teams.el --- Slack team configuration -*- lexical-binding: t; -*-
-;;; Commentary:
-;; Register your slack teams in the Code section, using `slack-register-team'.
+  (use-package slack
+    :ensure t
+    :commands (slack-start)
+    :init
+    (setq slack-buffer-emojify t) ;; if you want to enable emoji, default nil
+    (setq slack-prefer-current-team t)
+    :config
+    (let ((file (expand-file-name "slack-teams.el" user-emacs-directory)))
+      (if (f-exists? file)
+          (load file)
+        (progn
+          (f-touch file)
+          (f-write ";;; slack-teams.el --- Slack team configuration -*- lexical-binding: t; -*-
+  ;;; Commentary:
+  ;; Register your slack teams in the Code section, using `slack-register-team'.
 
-;;; Code:
+  ;;; Code:
 
-(provide 'slack-teams)
-;;; slack-teams.el ends here" 'utf-8 file)))))
+  (provide 'slack-teams)
+  ;;; slack-teams.el ends here" 'utf-8 file)))))
 
-(use-package alert
-  :ensure t
-  :commands (alert)
-  :init
-  (setq alert-default-style 'notifier))
+  (use-package alert
+    :ensure t
+    :commands (alert)
+    :init
+    (setq alert-default-style 'notifier))
 #+END_SRC
 
 ** Network Manager
@@ -1389,26 +1389,26 @@ Function to pretty print the active region.
 *** Org mode customizations
 
 #+begin_src emacs-lisp
-(setq
- org-agenda-files '("~/org/journal.org")
- org-babel-load-languages '((emacs-lisp . t) (plantuml . t) (shell . t) (sql . t))
- org-capture-templates
+  (setq
+   org-agenda-files '("~/org/journal.org")
+   org-babel-load-languages '((emacs-lisp . t) (plantuml . t) (shell . t) (sql . t))
+   org-capture-templates
    '(("t" "Todo" entry
       (file+headline "~/org/todo.org" "Tasks")
       "* TODO %?
-  %i
-  %a")
+    %i
+    %a")
      ("j" "Journal item" entry
       (file+olp+datetree "~/org/journal.org")
       "* %?
-Entered on %U
-  %i
-  %a" :jump-to-captured t :empty-lines-before 1 :empty-lines-after 1))
- org-confirm-babel-evaluate nil
- org-ditaa-jar-path "/usr/share/ditaa/ditaa.jar"
- org-plantuml-jar-path (expand-file-name "~/.emacs.d/plantuml.jar"))
+  Entered on %U
+    %i
+    %a" :jump-to-captured t :empty-lines-before 1 :empty-lines-after 1))
+   org-confirm-babel-evaluate nil
+   org-ditaa-jar-path "/usr/share/ditaa/ditaa.jar"
+   org-plantuml-jar-path (expand-file-name "plantuml.jar" user-emacs-directory))
 
-(require 'ob-shell)
+  (require 'ob-shell)
 #+end_src
 
 *** Org Babel Restclient
@@ -1448,22 +1448,22 @@ Entered on %U
 *** =org-brain= DISABLED
 
 #+BEGIN_SRC emacs-lisp
-(use-package org-brain
-  :disabled
-  :after (org)
-  :init
-  (setq org-brain-path "~/Documents/brain")
-  ;; For Evil users
-  ;; (with-eval-after-load 'evil
-  ;;   (evil-set-initial-state 'org-brain-visualize-mode 'emacs))
-  :config
-  (setq org-id-track-globally t)
-  (setq org-id-locations-file "~/.emacs.d/.org-id-locations")
-  ;; (push '("b" "Brain" plain (function org-brain-goto-end)
-  ;;         "* %i%?" :empty-lines 1)
-  ;;       org-capture-templates)
-  (setq org-brain-visualize-default-choices 'all)
-  (setq org-brain-title-max-length 12))
+  (use-package org-brain
+    :disabled
+    :after (org)
+    :init
+    (setq org-brain-path "~/Documents/brain")
+    ;; For Evil users
+    ;; (with-eval-after-load 'evil
+    ;;   (evil-set-initial-state 'org-brain-visualize-mode 'emacs))
+    :config
+    (setq org-id-track-globally t)
+    (setq org-id-locations-file (expand-file-name ".org-id-locations" user-emacs-directory))
+    ;; (push '("b" "Brain" plain (function org-brain-goto-end)
+    ;;         "* %i%?" :empty-lines 1)
+    ;;       org-capture-templates)
+    (setq org-brain-visualize-default-choices 'all)
+    (setq org-brain-title-max-length 12))
 #+END_SRC
 
 *** Present
