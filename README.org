@@ -2114,6 +2114,12 @@ Install =gnome-flashback= and follow the instruction from: [[https://github.com/
     (setq exwm-randr-workspace-monitor-plist '(0 "eDP-1" 1 "DP-3" 2 "DP-3" 3 "DP-3" ))
     (exwm-randr-refresh))
 
+  (defun init/xrandr-ing-tp-2-screen ()
+    (interactive)
+    (start-process-shell-command "xrandr" nil "xrandr --output eDP-1 --mode 1920x1080 --pos 0x0 --rotate normal --output DP-3 --off --output DP-1 --primary --mode 3440x1440 --pos 1920x0 --rotate normal --output DP-2 --off")
+    (setq exwm-randr-workspace-monitor-plist '(0 "eDP-1" 1 "DP-3" 2 "DP-3" 3 "DP-3" ))
+    (exwm-randr-refresh))
+
   (defun init/xrandr-laptop ()
     (interactive)
     (start-process-shell-command "xrandr" nil "xrandr --output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal --output HDMI-2 --off --output HDMI-1 --off --output DP-3 --off --output DP-2 --off --output DP-1 --off")
