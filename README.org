@@ -19,7 +19,7 @@ In this section we will initialize the Emacs configuration. We will optimize sta
 Configure the configuration file for lexical binding, as opposed to dynamic binding. Lexical binding is the behaviour that most developers actually expect.
 
 #+BEGIN_SRC emacs-lisp
-;;; init -*- lexical-binding: t; -*-
+  ;;; init -*- lexical-binding: t; -*-
 #+END_SRC
 
 ** Upon startup, write message with startup details
@@ -27,13 +27,13 @@ Configure the configuration file for lexical binding, as opposed to dynamic bind
 Install a startup hook that informs the user of the startup duration and the number of garbage collections.
 
 #+BEGIN_SRC emacs-lisp
-(add-hook 'emacs-startup-hook
- (lambda ()
-  (message "Emacs ready in %s with %d garbage collections."
-   (format "%.2f seconds"
-    (float-time
-     (time-subtract after-init-time before-init-time)))
-   gcs-done)))
+  ;; (add-hook 'emacs-startup-hook
+  ;;  (lambda ()
+  ;;   (message "Emacs ready in %s with %d garbage collections."
+  ;;    (format "%.2f seconds"
+  ;;     (float-time
+  ;;      (time-subtract after-init-time before-init-time)))
+  ;;    gcs-done)))
 #+END_SRC
 
 ** Temporarily change garbage collection settings, and disable file-name-handler
@@ -41,40 +41,47 @@ Install a startup hook that informs the user of the startup duration and the num
 In order to optimize the startup time we will change the garbage collection settings during startup and restore the original settings after startup is done.
 
 #+BEGIN_SRC emacs-lisp
-(setq gc-cons-threshold (* 64 1024 1024))
-(let ((gc-cons-threshold-backup gc-cons-threshold)
-      (gc-cons-percentage-backup gc-cons-percentage)
-      file-name-handler-alist-backup file-name-handler-alist)
-  ;; Change garbage collector settings and file-name-handler
-  (setq gc-cons-threshold 402653184
-	gc-cons-percentage 0.6
-	file-name-handler-alist nil)
-  ;; Then restore it as late as possible
-  (add-hook 'emacs-startup-hook
-	    (lambda ()
-	      (message "Restored original settings")
-	      (setq gc-cons-threshold gc-cons-threshold-backup
-		    gc-cons-percentage gc-cons-percentage-backup
-		    file-name-handler-alist (append file-name-handler-alist-backup file-name-handler-alist)))))
+  ;; (setq gc-cons-threshold (* 64 1024 1024))
+  ;; (let ((gc-cons-threshold-backup gc-cons-threshold)
+  ;;       (gc-cons-percentage-backup gc-cons-percentage)
+  ;;       file-name-handler-alist-backup file-name-handler-alist)
+  ;;   ;; Change garbage collector settings and file-name-handler
+  ;;   (setq gc-cons-threshold 402653184
+  ;;   gc-cons-percentage 0.6
+  ;;   file-name-handler-alist nil)
+  ;;   ;; Then restore it as late as possible
+  ;;   (add-hook 'emacs-startup-hook
+  ;;       (lambda ()
+  ;;         (message "Restored original settings")
+  ;;         (setq gc-cons-threshold gc-cons-threshold-backup
+  ;;         gc-cons-percentage gc-cons-percentage-backup
+  ;;         file-name-handler-alist (append file-name-handler-alist-backup file-name-handler-alist)))))
 #+END_SRC
 
 ** Standard UI tweaks
 
 #+BEGIN_SRC emacs-lisp
-(display-battery-mode 1)
-(display-time-mode 1)
-(scroll-bar-mode -1)
-(tool-bar-mode -1)
-(menu-bar-mode -1)
-(show-paren-mode 1)
-(setq-default indent-tabs-mode nil)
-(setq-default tab-width 2)
+  ;; (display-battery-mode 1)
+  ;; (display-time-mode 1)
+  ;; (scroll-bar-mode -1)
+  ;; (tool-bar-mode -1)
+  ;; (menu-bar-mode -1)
+  ;; (show-paren-mode 1)
+  ;; (setq-default indent-tabs-mode nil)
+  ;; (setq-default tab-width 2)
+  ;; (global-auto-revert-mode 1)         ; enable auto revert mode globally
+  ;; ;; Set default font
+  ;; (set-face-attribute 'default nil
+  ;;                     :family "JetBrains Mono"
+  ;;                     :height 100
+  ;;                     :weight 'normal
+  ;;                     :width 'normal)
 #+END_SRC
 
 ** Enable linum for programming modes
 
 #+BEGIN_SRC emacs-lisp
-(add-hook 'prog-mode-hook #'linum-mode)
+  (add-hook 'prog-mode-hook #'linum-mode)
 #+END_SRC
 
 ** Configure =custom-file=
@@ -82,59 +89,59 @@ In order to optimize the startup time we will change the garbage collection sett
 Do not use =init.el= for =custom-*= code - use =custom.el=.
 
 #+BEGIN_SRC emacs-lisp
-(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+  (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 #+END_SRC
 
 Assuming that the code in custom-file is executed before the code ahead of this line is not a safe assumption. So load this file proactively.
 
 #+BEGIN_SRC emacs-lisp
-(when (file-exists-p custom-file)
-  (load custom-file))
+  (when (file-exists-p custom-file)
+    (load custom-file))
 #+END_SRC
 
 ** Require and initialize =package=
 
 #+BEGIN_SRC emacs-lisp
-(require 'package)
-(package-initialize)
+  (require 'package)
+  (package-initialize)
 #+END_SRC
 
 *** Add =melpa= to =package-archives=
 
 #+BEGIN_SRC emacs-lisp
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-(add-to-list 'package-archive-priorities '("melpa" . 10) t)
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+  (add-to-list 'package-archive-priorities '("melpa" . 10) t)
 #+END_SRC
 
 ** Install =use-package=
 
 #+BEGIN_SRC emacs-lisp
-(when (not (package-installed-p 'use-package))
- (package-refresh-contents)
- (package-install 'use-package))
+  (when (not (package-installed-p 'use-package))
+   (package-refresh-contents)
+   (package-install 'use-package))
 #+END_SRC
 
 ** Install =quelpa= to install packages directly from github
 
 #+BEGIN_SRC emacs-lisp
-(unless (package-installed-p 'quelpa)
-    (with-temp-buffer
-      (url-insert-file-contents "https://raw.githubusercontent.com/quelpa/quelpa/master/quelpa.el")
-      (eval-buffer)
-      (quelpa-self-upgrade)))
+  (unless (package-installed-p 'quelpa)
+      (with-temp-buffer
+        (url-insert-file-contents "https://raw.githubusercontent.com/quelpa/quelpa/master/quelpa.el")
+        (eval-buffer)
+        (quelpa-self-upgrade)))
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
-(use-package quelpa-use-package
-  :ensure t)
+  (use-package quelpa-use-package
+    :ensure t)
 #+END_SRC
 
 ** Install =esup= startup profiler
 
 #+BEGIN_SRC emacs-lisp
-(use-package esup
-  :ensure t
-  :commands (esup))
+  (use-package esup
+    :ensure t
+    :commands (esup))
 #+END_SRC
 
 * Utility functions
@@ -143,63 +150,35 @@ Assuming that the code in custom-file is executed before the code ahead of this 
 Memoize is used by some utility functions.
 
 #+BEGIN_SRC emacs-lisp
-(use-package memoize
- :ensure t)
+  (use-package memoize
+   :ensure t)
 #+END_SRC
 
 =memoize= is a great library that can memoize functions.
 
-For example the following code produces the output below.
-
-#+BEGIN_SRC elisp :results output session :exports both
-(defvar square-times-called 0)
-(defmemoize-by-buffer-contents square (x)
-  (setq square-times-called (+ square-times-called 1))
-  (print (format "Called `square' for the %d-th time." square-times-called))
-  (* x x))
-
-(print (square 6))
-(print (square 6))
-(print (square 5))
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-
-"Called `square' for the 1-th time."
-
-36
-
-36
-
-"Called `square' for the 2-th time."
-
-25
-#+end_example
-
 ** =init-recompile-user-dir=
 
 #+BEGIN_SRC emacs-lisp
-(defun init-recompile-user-dir ()
- "Recompile everything in the `package-user-dir'."
- (interactive)
- (byte-recompile-directory package-user-dir nil 'force))
+  (defun init-recompile-user-dir ()
+   "Recompile everything in the `package-user-dir'."
+   (interactive)
+   (byte-recompile-directory package-user-dir nil 'force))
 #+END_SRC
 
 ** =init-command-exists-p=
 
 #+BEGIN_SRC emacs-lisp
-(unless (fboundp 'init-command-exists-p)
-  (defmemoize init-command-exists-p (command)
-  "Checks whether COMMAND exists on this system.
+  (unless (fboundp 'init-command-exists-p)
+    (defmemoize init-command-exists-p (command)
+    "Checks whether COMMAND exists on this system.
 
-The existence of COMMAND is checked using =command -v COMMAND=. So this function
-will only work on systems where the command =command= exists."
-    (let ((buf    (get-buffer-create "command-exists-buffer"))
-          (retval nil))
-      (setq retval (shell-command (format "command -v '%s'" command)))
-      (kill-buffer buf)
-      (eq retval 0))))
+  The existence of COMMAND is checked using =command -v COMMAND=. So this function
+  will only work on systems where the command =command= exists."
+      (let ((buf    (get-buffer-create "command-exists-buffer"))
+            (retval nil))
+        (setq retval (shell-command (format "command -v '%s'" command)))
+        (kill-buffer buf)
+        (eq retval 0))))
 #+END_SRC
 
 ** =init-call-process-string=
@@ -218,9 +197,9 @@ will only work on systems where the command =command= exists."
 To use =all-the-icons=, one must run =M-x all-the-icons-install-fonts=.
 
 #+BEGIN_SRC emacs-lisp
-(use-package all-the-icons
- :ensure t
- :if (display-graphic-p))
+  (use-package all-the-icons
+   :ensure t
+   :if (display-graphic-p))
 #+END_SRC
 
 ** Install =doom-themes=
@@ -290,9 +269,9 @@ From [[https://github.com/hlissner/emacs-doom-themes]]
 From [[https://github.com/seagle0128/doom-modeline]]
 
 #+BEGIN_SRC emacs-lisp
-(use-package doom-modeline
- :ensure t
- :init (doom-modeline-mode 1))
+  (use-package doom-modeline
+   :ensure t
+   :init (doom-modeline-mode 1))
 #+END_SRC
 
 ** Install =minimap=
@@ -316,22 +295,22 @@ From [[https://github.com/seagle0128/doom-modeline]]
 Shortly highlights the cursor position when switching buffers.
 
 #+BEGIN_SRC emacs-lisp
-(use-package beacon
-  :ensure t
-  :config (beacon-mode 1))
+  (use-package beacon
+    :ensure t
+    :config (beacon-mode 1))
 #+END_SRC
 
 ** Install =sublimity=
 
 #+begin_src emacs-lisp
-(use-package sublimity
-  :disabled
-  :ensure t
-  :config
-  (progn
-    (require 'sublimity-scroll)
-    (require 'sublimity-map)
-    (require 'sublimity-attractive)))
+  (use-package sublimity
+    :disabled
+    :ensure t
+    :config
+    (progn
+      (require 'sublimity-scroll)
+      (require 'sublimity-map)
+      (require 'sublimity-attractive)))
 #+end_src
 
 ** Install =ligature.el=
@@ -389,69 +368,69 @@ Shortly highlights the cursor position when switching buffers.
 ** =discover=
 
 #+BEGIN_SRC emacs-lisp
-(use-package discover
- :ensure t)
+  (use-package discover
+   :ensure t)
 #+END_SRC
 
 ** =discover-my-major=
 
 #+BEGIN_SRC emacs-lisp
-(use-package discover-my-major
-  :ensure t
-  :config
-  (progn
-    (global-set-key (kbd "C-h C-m") 'discover-my-major)
-    (global-set-key (kbd "C-h M-m") 'discover-my-mode)))
+  (use-package discover-my-major
+    :ensure t
+    :config
+    (progn
+      (global-set-key (kbd "C-h C-m") 'discover-my-major)
+      (global-set-key (kbd "C-h M-m") 'discover-my-mode)))
 #+END_SRC
 
 ** =helpful=
 
 #+BEGIN_SRC emacs-lisp
-(use-package helpful
-  :ensure t
-  :config
-  (progn
-    ;; Note that the built-in `describe-function' includes both functions
-    ;; and macros. `helpful-function' is functions only, so we provide
-    ;; `helpful-callable' as a drop-in replacement.
-    (global-set-key (kbd "C-h f") #'helpful-callable)
+  (use-package helpful
+    :ensure t
+    :config
+    (progn
+      ;; Note that the built-in `describe-function' includes both functions
+      ;; and macros. `helpful-function' is functions only, so we provide
+      ;; `helpful-callable' as a drop-in replacement.
+      (global-set-key (kbd "C-h f") #'helpful-callable)
 
-    (global-set-key (kbd "C-h v") #'helpful-variable)
-    (global-set-key (kbd "C-h k") #'helpful-key)
-    ;; Lookup the current symbol at point. C-c C-d is a common keybinding
-    ;; for this in lisp modes.
-    (global-set-key (kbd "C-c C-d") #'helpful-at-point)
+      (global-set-key (kbd "C-h v") #'helpful-variable)
+      (global-set-key (kbd "C-h k") #'helpful-key)
+      ;; Lookup the current symbol at point. C-c C-d is a common keybinding
+      ;; for this in lisp modes.
+      (global-set-key (kbd "C-c C-d") #'helpful-at-point)
 
-    ;; Look up *F*unctions (excludes macros).
-    ;;
-    ;; By default, C-h F is bound to `Info-goto-emacs-command-node'. Helpful
-    ;; already links to the manual, if a function is referenced there.
-    (global-set-key (kbd "C-h F") #'helpful-function)
+      ;; Look up *F*unctions (excludes macros).
+      ;;
+      ;; By default, C-h F is bound to `Info-goto-emacs-command-node'. Helpful
+      ;; already links to the manual, if a function is referenced there.
+      (global-set-key (kbd "C-h F") #'helpful-function)
 
-    ;; Look up *C*ommands.
-    ;;
-    ;; By default, C-h C is bound to describe `describe-coding-system'. I
-    ;; don't find this very useful, but it's frequently useful to only
-    ;; look at interactive functions.
-    (global-set-key (kbd "C-h C") #'helpful-command)))
+      ;; Look up *C*ommands.
+      ;;
+      ;; By default, C-h C is bound to describe `describe-coding-system'. I
+      ;; don't find this very useful, but it's frequently useful to only
+      ;; look at interactive functions.
+      (global-set-key (kbd "C-h C") #'helpful-command)))
 #+END_SRC
 
 ** Install =restart-emacs=
 
 #+BEGIN_SRC emacs-lisp
-(use-package restart-emacs
- :ensure t
- :defer t)
+  (use-package restart-emacs
+   :ensure t
+   :defer t)
 #+END_SRC
 
 * Navigation
 ** Configure Windmove
 
 #+BEGIN_SRC emacs-lisp
-(global-set-key (kbd "s-<left>") 'windmove-left)
-(global-set-key (kbd "s-<right>") 'windmove-right)
-(global-set-key (kbd "s-<up>") 'windmove-up)
-(global-set-key (kbd "s-<down>") 'windmove-down)
+  (global-set-key (kbd "s-<left>") 'windmove-left)
+  (global-set-key (kbd "s-<right>") 'windmove-right)
+  (global-set-key (kbd "s-<up>") 'windmove-up)
+  (global-set-key (kbd "s-<down>") 'windmove-down)
 #+END_SRC
 
 ** Install =counsel ivy and swiper=
@@ -468,95 +447,95 @@ Some of these configurations depend on external software:
 - =git=
 
 #+BEGIN_SRC emacs-lisp
-(use-package ivy
-  :ensure t
-  :config
-  (progn
-    (ivy-mode 1)
-    (setq ivy-use-virtual-buffers t)
-    (setq enable-recursive-minibuffers t)
-    (setq ivy-count-format "%d of %d - ")
-    ;; enable this if you want `swiper' to use it
-    ;; (setq search-default-mode #'char-fold-to-regexp)
-    (global-set-key (kbd "C-S-s") 'swiper)
-    (global-set-key (kbd "C-c C-r") 'ivy-resume)
-    (global-set-key (kbd "<f6>") 'ivy-resume)
-    ;; (global-set-key (kbd "M-x") 'counsel-M-x)
-    ;; (global-set-key (kbd "C-x C-f") 'counsel-find-file)
-    ;; (global-set-key (kbd "<f1> f") 'counsel-describe-function)
-    ;; (global-set-key (kbd "<f1> v") 'counsel-describe-variable)
-    (global-set-key (kbd "<f1> o") 'counsel-describe-symbol)
-    ;; (global-set-key (kbd "<f1> l") 'counsel-find-library)
-    ;; (global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
-    (global-set-key (kbd "<f2> u") 'counsel-unicode-char)
-    (global-set-key (kbd "C-c g") 'counsel-git)
-    (global-set-key (kbd "C-c j") 'counsel-git-grep)
-    (global-set-key (kbd "C-c k") 'counsel-ag)
-    (global-set-key (kbd "C-x l") 'counsel-locate)
-    (global-set-key (kbd "C-S-o") 'counsel-rhythmbox)
-    (define-key minibuffer-local-map (kbd "C-r") 'counsel-minibuffer-history)))
+  (use-package ivy
+    :ensure t
+    :config
+    (progn
+      (ivy-mode 1)
+      (setq ivy-use-virtual-buffers t)
+      (setq enable-recursive-minibuffers t)
+      (setq ivy-count-format "%d of %d - ")
+      ;; enable this if you want `swiper' to use it
+      ;; (setq search-default-mode #'char-fold-to-regexp)
+      (global-set-key (kbd "C-S-s") 'swiper)
+      (global-set-key (kbd "C-c C-r") 'ivy-resume)
+      (global-set-key (kbd "<f6>") 'ivy-resume)
+      ;; (global-set-key (kbd "M-x") 'counsel-M-x)
+      ;; (global-set-key (kbd "C-x C-f") 'counsel-find-file)
+      ;; (global-set-key (kbd "<f1> f") 'counsel-describe-function)
+      ;; (global-set-key (kbd "<f1> v") 'counsel-describe-variable)
+      (global-set-key (kbd "<f1> o") 'counsel-describe-symbol)
+      ;; (global-set-key (kbd "<f1> l") 'counsel-find-library)
+      ;; (global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
+      (global-set-key (kbd "<f2> u") 'counsel-unicode-char)
+      (global-set-key (kbd "C-c g") 'counsel-git)
+      (global-set-key (kbd "C-c j") 'counsel-git-grep)
+      (global-set-key (kbd "C-c k") 'counsel-ag)
+      (global-set-key (kbd "C-x l") 'counsel-locate)
+      (global-set-key (kbd "C-S-o") 'counsel-rhythmbox)
+      (define-key minibuffer-local-map (kbd "C-r") 'counsel-minibuffer-history)))
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
-(use-package ivy-hydra
-  :ensure t
-  :defer t)
+  (use-package ivy-hydra
+    :ensure t
+    :defer t)
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
-(use-package counsel
-  :ensure t
-  :after (ivy)
-  :config (counsel-mode 1))
+  (use-package counsel
+    :ensure t
+    :after (ivy)
+    :config (counsel-mode 1))
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
-(use-package counsel-tramp
-  :ensure t
-  :defer t
-  :after (counsel))
+  (use-package counsel-tramp
+    :ensure t
+    :defer t
+    :after (counsel))
 #+END_SRC
 
 *** Show icons in ivy
 
 #+BEGIN_SRC emacs-lisp
-(use-package all-the-icons-ivy
- :ensure t
- :after (all-the-icons ivy)
- :if (display-graphic-p)
- :config
- (all-the-icons-ivy-setup))
+  (use-package all-the-icons-ivy
+   :ensure t
+   :after (all-the-icons ivy)
+   :if (display-graphic-p)
+   :config
+   (all-the-icons-ivy-setup))
 #+END_SRC
 
 ** Install =avy=
 
 #+BEGIN_SRC emacs-lisp
-(use-package avy
-  :ensure t
-  ;; :defer t
-  :bind (("C-:" . avy-goto-char)
-	 ("C-'" . avy-goto-char2)
-	 ("M-g f" . avy-goto-line)
-	 ("M-g w" . avy-goto-word-1)
-	 ("M-g e" . avy-goto-word-0)
-	 ("C-c C-j" . avy-resume))
-  :config
-  (avy-setup-default))
+  (use-package avy
+    :ensure t
+    ;; :defer t
+    :bind (("C-:" . avy-goto-char)
+     ("C-'" . avy-goto-char2)
+     ("M-g f" . avy-goto-line)
+     ("M-g w" . avy-goto-word-1)
+     ("M-g e" . avy-goto-word-0)
+     ("C-c C-j" . avy-resume))
+    :config
+    (avy-setup-default))
 #+END_SRC
 
 * Editing
 ** =multiple-cursors=
 
 #+BEGIN_SRC emacs-lisp
-(use-package multiple-cursors
-  :ensure t
-  :config
-  (progn
-    (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
-    (global-set-key (kbd "C->") 'mc/mark-next-like-this)
-    (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-    (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
-    ))
+  (use-package multiple-cursors
+    :ensure t
+    :config
+    (progn
+      (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
+      (global-set-key (kbd "C->") 'mc/mark-next-like-this)
+      (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+      (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+      ))
 #+END_SRC
 
 ** =yasnippet=
@@ -588,148 +567,148 @@ Some of these configurations depend on external software:
 ** =string-inflection=
 
 #+BEGIN_SRC emacs-lisp
-(use-package string-inflection
-  :ensure t
-  :config (progn
-            (global-set-key (kbd "C-c i") 'string-inflection-cycle)
-            (global-set-key (kbd "C-c C") 'string-inflection-camelcase)        ;; Force to CamelCase
-            (global-set-key (kbd "C-c L") 'string-inflection-lower-camelcase)  ;; Force to lowerCamelCase
-            (global-set-key (kbd "C-c J") 'string-inflection-java-style-cycle) ;; Cycle through Java styles
-            ))
+  (use-package string-inflection
+    :ensure t
+    :config (progn
+              (global-set-key (kbd "C-c i") 'string-inflection-cycle)
+              (global-set-key (kbd "C-c C") 'string-inflection-camelcase)        ;; Force to CamelCase
+              (global-set-key (kbd "C-c L") 'string-inflection-lower-camelcase)  ;; Force to lowerCamelCase
+              (global-set-key (kbd "C-c J") 'string-inflection-java-style-cycle) ;; Cycle through Java styles
+              ))
 #+END_SRC
 ** =editorconfig=
 
 #+BEGIN_SRC emacs-lisp
-(use-package editorconfig
-  :ensure t
-  :config
-  (editorconfig-mode 1))
+  (use-package editorconfig
+    :ensure t
+    :config
+    (editorconfig-mode 1))
 #+END_SRC
 ** =edit-indirect=
 
 #+begin_src emacs-lisp
-(use-package edit-indirect
-  :ensure t)
+  (use-package edit-indirect
+    :ensure t)
 #+end_src
 
 ** Code completion with =company=
 
 #+BEGIN_SRC emacs-lisp
-(use-package company
-  :ensure t
-  :config (add-hook 'after-init-hook 'global-company-mode))
+  (use-package company
+    :ensure t
+    :config (add-hook 'after-init-hook 'global-company-mode))
 
-(use-package company-box
-  :ensure t
-  :hook (company-mode . company-box-mode))
+  (use-package company-box
+    :ensure t
+    :hook (company-mode . company-box-mode))
 
-(use-package company-quickhelp
-  :ensure t
-  :after (company)
-  :config (progn (company-quickhelp-mode 1)
-                 (with-eval-after-load 'company-mode
-                   (define-key company-active-map (kbd "C-c h") #'company-quickhelp-manual-begin))))
+  (use-package company-quickhelp
+    :ensure t
+    :after (company)
+    :config (progn (company-quickhelp-mode 1)
+                   (with-eval-after-load 'company-mode
+                     (define-key company-active-map (kbd "C-c h") #'company-quickhelp-manual-begin))))
 
-(use-package company-web
-  :ensure t)
+  (use-package company-web
+    :ensure t)
 #+END_SRC
 ** Syntax checking with =flycheck=
 
 #+BEGIN_SRC emacs-lisp
-(use-package flycheck
-  :ensure t
-  :hook (prog-mode . flycheck-mode)
-  :config
-  (progn
-    (setq flycheck-check-syntax-automatically '(save new-line))))
+  (use-package flycheck
+    :ensure t
+    :hook (prog-mode . flycheck-mode)
+    :config
+    (progn
+      (setq flycheck-check-syntax-automatically '(save new-line))))
 #+END_SRC
 *** Syntax checking of packages
 
 #+BEGIN_SRC emacs-lisp
-(use-package flycheck-package
-  :ensure t
-  :after (flycheck))
+  (use-package flycheck-package
+    :ensure t
+    :after (flycheck))
 #+END_SRC
 ** Very large file support
 
 #+BEGIN_SRC emacs-lisp
-(use-package vlf
-  :ensure t
-  :config
-  (require 'vlf-setup))
+  (use-package vlf
+    :ensure t
+    :config
+    (require 'vlf-setup))
 #+END_SRC
 ** =expand-region=
 
 #+BEGIN_SRC emacs-lisp
-(use-package expand-region
- :ensure t)
+  (use-package expand-region
+   :ensure t)
 #+END_SRC
 ** =iedit=
 
 #+BEGIN_SRC emacs-lisp
-(use-package iedit
- :ensure t)
+  (use-package iedit
+   :ensure t)
 #+END_SRC
 ** Move lines
 
 #+BEGIN_SRC emacs-lisp
-(defmacro init-save-column (&rest body)
-  `(let ((column (current-column)))
-     (unwind-protect
-         (progn ,@body)
-       (move-to-column column))))
-(put 'init-save-column 'lisp-indent-function 0)
+  (defmacro init-save-column (&rest body)
+    `(let ((column (current-column)))
+       (unwind-protect
+           (progn ,@body)
+         (move-to-column column))))
+  (put 'init-save-column 'lisp-indent-function 0)
 
-(defun init-move-line-up ()
-  (interactive)
-  (init-save-column
-    (transpose-lines 1)
-    (forward-line -2)))
+  (defun init-move-line-up ()
+    (interactive)
+    (init-save-column
+      (transpose-lines 1)
+      (forward-line -2)))
 
-(defun init-move-line-down ()
-  (interactive)
-  (init-save-column
-    (forward-line 1)
-    (transpose-lines 1)
-    (forward-line -1)))
+  (defun init-move-line-down ()
+    (interactive)
+    (init-save-column
+      (forward-line 1)
+      (transpose-lines 1)
+      (forward-line -1)))
 
-(global-set-key (kbd "M-<up>") 'init-move-line-up)
-(global-set-key (kbd "M-<down>") 'init-move-line-down)
+  (global-set-key (kbd "M-<up>") 'init-move-line-up)
+  (global-set-key (kbd "M-<down>") 'init-move-line-down)
 #+END_SRC
 ** Configure =ediff=
 
 #+BEGIN_SRC emacs-lisp
-(require 'ediff)
-(setq ediff-window-setup-function 'ediff-setup-windows-plain)
+  (require 'ediff)
+  (setq ediff-window-setup-function 'ediff-setup-windows-plain)
 
-(defun ediff-copy-both-to-C ()
-  (interactive)
-  (ediff-copy-diff ediff-current-difference nil 'C nil
-                   (concat
-                    (ediff-get-region-contents ediff-current-difference 'A ediff-control-buffer)
-                    (ediff-get-region-contents ediff-current-difference 'B ediff-control-buffer))))
-(defun add-d-to-ediff-mode-map () (define-key ediff-mode-map "d" 'ediff-copy-both-to-C))
-(add-hook 'ediff-keymap-setup-hook 'add-d-to-ediff-mode-map)
+  (defun ediff-copy-both-to-C ()
+    (interactive)
+    (ediff-copy-diff ediff-current-difference nil 'C nil
+                     (concat
+                      (ediff-get-region-contents ediff-current-difference 'A ediff-control-buffer)
+                      (ediff-get-region-contents ediff-current-difference 'B ediff-control-buffer))))
+  (defun add-d-to-ediff-mode-map () (define-key ediff-mode-map "d" 'ediff-copy-both-to-C))
+  (add-hook 'ediff-keymap-setup-hook 'add-d-to-ediff-mode-map)
 #+END_SRC
 
 * System utilities and tools
 ** Silver searcher
 
 #+BEGIN_SRC emacs-lisp
-(use-package ag
-  :ensure t
-  :if (init-command-exists-p 'ag))
+  (use-package ag
+    :ensure t
+    :if (init-command-exists-p 'ag))
 #+END_SRC
 
 ** Ripgrep
 
 #+BEGIN_SRC emacs-lisp
-(use-package ripgrep
-  :ensure t
-  :if (init-command-exists-p 'rg))
-(use-package rg
-  :ensure t
-  :if (init-command-exists-p 'rg))
+  (use-package ripgrep
+    :ensure t
+    :if (init-command-exists-p 'rg))
+  (use-package rg
+    :ensure t
+    :if (init-command-exists-p 'rg))
 #+END_SRC
 
 *** TODO Investigate whether both are needed
@@ -752,30 +731,30 @@ Some of these configurations depend on external software:
 ** Gnuplot
 
 #+BEGIN_SRC emacs-lisp
-(use-package gnuplot
-  :ensure t
-  :if (init-command-exists-p 'gnuplot)
-  :config
-  (progn
-    ;; these lines enable the use of gnuplot mode
-    (autoload 'gnuplot-mode "gnuplot" "gnuplot major mode" t)
-    (autoload 'gnuplot-make-buffer "gnuplot" "open a buffer in gnuplot mode" t)
+  (use-package gnuplot
+    :ensure t
+    :if (init-command-exists-p 'gnuplot)
+    :config
+    (progn
+      ;; these lines enable the use of gnuplot mode
+      (autoload 'gnuplot-mode "gnuplot" "gnuplot major mode" t)
+      (autoload 'gnuplot-make-buffer "gnuplot" "open a buffer in gnuplot mode" t)
 
-    ;; this line automatically causes all files with the .gp extension to be loaded into gnuplot mode
-    (setq auto-mode-alist (append '(("\\.gp$" . gnuplot-mode)) auto-mode-alist))
+      ;; this line automatically causes all files with the .gp extension to be loaded into gnuplot mode
+      (setq auto-mode-alist (append '(("\\.gp$" . gnuplot-mode)) auto-mode-alist))
 
-    ;; This line binds the function-9 key so that it opens a buffer into gnuplot mode
-    ;; (global-set-key [(f9)] 'gnuplot-make-buffer)
-    ))
+      ;; This line binds the function-9 key so that it opens a buffer into gnuplot mode
+      ;; (global-set-key [(f9)] 'gnuplot-make-buffer)
+      ))
 #+END_SRC
 
 ** Docker
 
 #+BEGIN_SRC emacs-lisp
-(use-package docker
-  :ensure t
-  :if (init-command-exists-p 'docker)
-  :bind ("C-c d" . docker))
+  (use-package docker
+    :ensure t
+    :if (init-command-exists-p 'docker)
+    :bind ("C-c d" . docker))
 #+END_SRC
 
 Editing and using dockerfiles
@@ -790,39 +769,39 @@ Editing and using dockerfiles
 ** Vagrant
 
 #+BEGIN_SRC emacs-lisp
-(use-package vagrant
-  :ensure t
-  :if (init-command-exists-p 'vagrant))
+  (use-package vagrant
+    :ensure t
+    :if (init-command-exists-p 'vagrant))
 #+END_SRC
 
 ** Ansible
 
 #+BEGIN_SRC emacs-lisp
-(use-package ansible
-  :ensure t
-  :if (init-command-exists-p 'ansible)
-  :config
-  (progn
-    (add-to-list 'auto-mode-alist '(".*inventory.*/group_vars/.*\\'" . yaml-mode))
-    (add-to-list 'auto-mode-alist '(".*inventory.*/host_vars/.*\\'" . yaml-mode))
-    ))
-(use-package ansible-doc
-  :ensure t
-  :if (init-command-exists-p 'ansible)
-  :after (ansible))
-(use-package ansible-vault
-  :ensure t
-  :if (init-command-exists-p 'ansible)
-  :after (ansible))
-(use-package company-ansible
-  :ensure t
-  :if (init-command-exists-p 'ansible)
-  :after (ansible company))
-(use-package ansible-vault-string
-  :if (init-command-exists-p 'ansible)
-  :quelpa (ansible-vault-string
-           :fetcher github
-           :repo "peterpaul/ansible-vault-string"))
+  (use-package ansible
+    :ensure t
+    :if (init-command-exists-p 'ansible)
+    :config
+    (progn
+      (add-to-list 'auto-mode-alist '(".*inventory.*/group_vars/.*\\'" . yaml-mode))
+      (add-to-list 'auto-mode-alist '(".*inventory.*/host_vars/.*\\'" . yaml-mode))
+      ))
+  (use-package ansible-doc
+    :ensure t
+    :if (init-command-exists-p 'ansible)
+    :after (ansible))
+  (use-package ansible-vault
+    :ensure t
+    :if (init-command-exists-p 'ansible)
+    :after (ansible))
+  (use-package company-ansible
+    :ensure t
+    :if (init-command-exists-p 'ansible)
+    :after (ansible company))
+  (use-package ansible-vault-string
+    :if (init-command-exists-p 'ansible)
+    :quelpa (ansible-vault-string
+             :fetcher github
+             :repo "peterpaul/ansible-vault-string"))
 #+END_SRC
 
 ** PlantUML
@@ -832,37 +811,37 @@ Editing and using dockerfiles
 - Cheatsheet: [[https://blog.anoff.io/puml-cheatsheet.pdf]]
 
 #+BEGIN_SRC emacs-lisp
-(use-package plantuml-mode
-  :ensure t
-  :config
-  (progn
-    (add-to-list 'auto-mode-alist '("\\.puml\\'" . plantuml-mode))
-    (add-to-list 'auto-mode-alist '("\\.plantuml\\'" . plantuml-mode))))
+  (use-package plantuml-mode
+    :ensure t
+    :config
+    (progn
+      (add-to-list 'auto-mode-alist '("\\.puml\\'" . plantuml-mode))
+      (add-to-list 'auto-mode-alist '("\\.plantuml\\'" . plantuml-mode))))
 #+END_SRC
 ** OpenSSL X.509 Certificate viewer
 
 #+BEGIN_SRC emacs-lisp
-(use-package x509-mode
-  :ensure t
-  :if (init-command-exists-p 'openssl))
-(use-package x509-certificate-region
-  :ensure t
-  :if (init-command-exists-p 'openssl)
-  :quelpa (x509-certificate-region
-           :fetcher github
-           :repo "peterpaul/x509-certificate-region.el")
-  :bind (("C-x x c" . x509-view-certificate)
-         ("C-x x x" . x509-view-xml-element-as-x509-certificate)
-         ("C-x x r" . x509-view-region-as-x509-certificate)
-         ("C-x x p" . x509-view-paragraph-as-x509-certificate)))
+  (use-package x509-mode
+    :ensure t
+    :if (init-command-exists-p 'openssl))
+  (use-package x509-certificate-region
+    :ensure t
+    :if (init-command-exists-p 'openssl)
+    :quelpa (x509-certificate-region
+             :fetcher github
+             :repo "peterpaul/x509-certificate-region.el")
+    :bind (("C-x x c" . x509-view-certificate)
+           ("C-x x x" . x509-view-xml-element-as-x509-certificate)
+           ("C-x x r" . x509-view-region-as-x509-certificate)
+           ("C-x x p" . x509-view-paragraph-as-x509-certificate)))
 #+END_SRC
 
 ** Keytool
 
 #+BEGIN_SRC emacs-lisp
-(use-package keystore-mode
-  :ensure t
-  :if (init-command-exists-p 'keytool))
+  (use-package keystore-mode
+    :ensure t
+    :if (init-command-exists-p 'keytool))
 #+END_SRC
 
 ** Edit server for Chrome and Firefox
@@ -870,31 +849,31 @@ Editing and using dockerfiles
 [[https://github.com/stsquad/emacs_chrome]]
 
 #+BEGIN_SRC emacs-lisp
-(use-package edit-server
-  :ensure t
-  :commands edit-server-start
-  :init (if after-init-time
-            (edit-server-start)
-          (add-hook 'after-init-hook
-                    #'(lambda () (edit-server-start))))
-  :config (progn
-            (setq edit-server-new-frame nil)
-            (setq edit-server-new-frame-alist
-                  '((name . "Edit with Emacs FRAME")
-                    (top . 200)
-                    (left . 200)
-                    (width . 80)
-                    (height . 25)
-                    (minibuffer . t)
-                    (menu-bar-lines . t)
-                    (window-system . x)))))
+  (use-package edit-server
+    :ensure t
+    :commands edit-server-start
+    :init (if after-init-time
+              (edit-server-start)
+            (add-hook 'after-init-hook
+                      #'(lambda () (edit-server-start))))
+    :config (progn
+              (setq edit-server-new-frame nil)
+              (setq edit-server-new-frame-alist
+                    '((name . "Edit with Emacs FRAME")
+                      (top . 200)
+                      (left . 200)
+                      (width . 80)
+                      (height . 25)
+                      (minibuffer . t)
+                      (menu-bar-lines . t)
+                      (window-system . x)))))
 #+END_SRC
 
 ** =system-packages=
 
 #+BEGIN_SRC emacs-lisp
-(use-package system-packages
- :ensure t)
+  (use-package system-packages
+   :ensure t)
 #+END_SRC
 
 ** Slack
@@ -931,28 +910,28 @@ Editing and using dockerfiles
 ** Network Manager
 
 #+BEGIN_SRC emacs-lisp
-(require 'seq)
-(defun init-nm-get-connections ()
-  "Get a list of all NetworkManager connections."
-  (seq-filter
-   (lambda (x) (not (string-blank-p x)))
-   (split-string
-    (shell-command-to-string "nmcli -o -m multiline -t -f name connection | cut -d':' -f2")
-    "\n")))
+  (require 'seq)
+  (defun init-nm-get-connections ()
+    "Get a list of all NetworkManager connections."
+    (seq-filter
+     (lambda (x) (not (string-blank-p x)))
+     (split-string
+      (shell-command-to-string "nmcli -o -m multiline -t -f name connection | cut -d':' -f2")
+      "\n")))
 
-(defun init-nm-up (connection)
-  "Bring NetworkManager CONNECTION up."
-  (interactive (list (completing-read "Connection: " (init-nm-get-connections))))
-  (async-shell-command (format "nmcli con up id %s" connection)))
+  (defun init-nm-up (connection)
+    "Bring NetworkManager CONNECTION up."
+    (interactive (list (completing-read "Connection: " (init-nm-get-connections))))
+    (async-shell-command (format "nmcli con up id %s" connection)))
 #+END_SRC
 
 ** ledger - double accounting tool
 
 #+begin_src emacs-lisp
-(use-package ledger-mode
-  :ensure t
-  :if (init-command-exists-p 'ledger)
-  :config (add-to-list 'auto-mode-alist '("\\.ledger$" . ledger-mode)))
+  (use-package ledger-mode
+    :ensure t
+    :if (init-command-exists-p 'ledger)
+    :config (add-to-list 'auto-mode-alist '("\\.ledger$" . ledger-mode)))
 #+end_src
 
 * Email
@@ -964,7 +943,7 @@ Documentation: [[https://www.djcbsoftware.nl/code/mu/mu4e/index.html]]
 Install =mu= and =mbsync=
 
 #+begin_src shell
-sudo apt install maildir-utils mu4e isync
+  sudo apt install maildir-utils mu4e isync
 #+end_src
 
 =mbsync= configuration in file [[file:~/.mbsyncrc][~/.mbsyncrc]]
@@ -1017,20 +996,20 @@ sudo apt install maildir-utils mu4e isync
 ** Colorize =dired= with =diredfl=
 
 #+BEGIN_SRC emacs-lisp
-(use-package diredfl
-  :ensure t
-  :config
-  (diredfl-global-mode))
+  (use-package diredfl
+    :ensure t
+    :config
+    (diredfl-global-mode))
 #+END_SRC
 ** Show icons in =dired= with =all-the-icons-dired=
 
 #+BEGIN_SRC emacs-lisp
-(use-package all-the-icons-dired
- :ensure t
- :after (all-the-icons)
- :if (display-graphic-p)
- :config
- (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
+  (use-package all-the-icons-dired
+   :ensure t
+   :after (all-the-icons)
+   :if (display-graphic-p)
+   :config
+   (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
 #+END_SRC
 
 ** Hide dot files in =dired=
@@ -1052,9 +1031,9 @@ sudo apt install maildir-utils mu4e isync
 ** Install =treemacs=
 
 #+BEGIN_SRC emacs-lisp
-(use-package treemacs
- :ensure t
- :config (global-set-key [f8] 'treemacs))
+  (use-package treemacs
+   :ensure t
+   :config (global-set-key [f8] 'treemacs))
 #+END_SRC
 ** Sunrise commander
 
@@ -1079,24 +1058,24 @@ sudo apt install maildir-utils mu4e isync
 [[https://github.com/dgutov/diff-hl][diff-hl-mode]] highlights uncommitted changes on the left size of the window.
 
 #+BEGIN_SRC emacs-lisp
-(use-package diff-hl
-  :ensure t
-  :after (magit)
-  :config
-  (progn
-   (global-diff-hl-mode)
-   ;; (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
-   (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)))
+  (use-package diff-hl
+    :ensure t
+    :after (magit)
+    :config
+    (progn
+     (global-diff-hl-mode)
+     ;; (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
+     (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)))
 #+END_SRC
 
 ** Git
 *** Install =magit=
 
 #+BEGIN_SRC emacs-lisp
-(use-package magit
- :ensure t
- :if (init-command-exists-p 'git)
- :defer t)
+  (use-package magit
+   :ensure t
+   :if (init-command-exists-p 'git)
+   :defer t)
 #+END_SRC
 **** treemacs-magit
 
@@ -1109,10 +1088,10 @@ sudo apt install maildir-utils mu4e isync
 *** Install =forge=
 
 #+BEGIN_SRC emacs-lisp
-(use-package forge
-  :ensure t
-  :if (init-command-exists-p 'git)
-  :after (magit))
+  (use-package forge
+    :ensure t
+    :if (init-command-exists-p 'git)
+    :after (magit))
 #+END_SRC
 
 *** Install =magit-todos=
@@ -1132,31 +1111,31 @@ sudo apt install maildir-utils mu4e isync
 *** Install =monky=
 
 #+BEGIN_SRC emacs-lisp
-(use-package monky
-  :ensure t
-  :if (init-command-exists-p 'hg)
-  :defer t)
+  (use-package monky
+    :ensure t
+    :if (init-command-exists-p 'hg)
+    :defer t)
 #+END_SRC
 
 * Project management
 ** =projectile=
 
 #+BEGIN_SRC emacs-lisp
-(use-package projectile
- :ensure t
- :defer t)
-(use-package projectile-ripgrep
-  :ensure t
-  :defer t
-  :after (projectile)
-  :if (init-command-exists-p 'rg))
-(use-package term-projectile
- :ensure t
- :defer t)
-(use-package treemacs-projectile
-  :ensure t
-  :defer t
-  :after (treemacs projectile))
+  (use-package projectile
+   :ensure t
+   :defer t)
+  (use-package projectile-ripgrep
+    :ensure t
+    :defer t
+    :after (projectile)
+    :if (init-command-exists-p 'rg))
+  (use-package term-projectile
+   :ensure t
+   :defer t)
+  (use-package treemacs-projectile
+    :ensure t
+    :defer t
+    :after (treemacs projectile))
 #+END_SRC
 
 * Terminals
@@ -1198,62 +1177,62 @@ For =bash=, put this in your =.bashrc=:
 
 For =fish= put this in your =~/.config/fish/config.fish=:
 #+begin_src shell
-function vterm_printf;
-    if [ -n "$TMUX" ]
-        # tell tmux to pass the escape sequences through
-        # (Source: http://permalink.gmane.org/gmane.comp.terminal-emulators.tmux.user/1324)
-        printf "\ePtmux;\e\e]%s\007\e\\" "$argv"
-    else if string match -q -- "screen*" "$TERM"
-        # GNU screen (screen, screen-256color, screen-256color-bce)
-        printf "\eP\e]%s\007\e\\" "$argv"
-    else
-        printf "\e]%s\e\\" "$argv"
-    end
-end
+  function vterm_printf;
+      if [ -n "$TMUX" ]
+          # tell tmux to pass the escape sequences through
+          # (Source: http://permalink.gmane.org/gmane.comp.terminal-emulators.tmux.user/1324)
+          printf "\ePtmux;\e\e]%s\007\e\\" "$argv"
+      else if string match -q -- "screen*" "$TERM"
+          # GNU screen (screen, screen-256color, screen-256color-bce)
+          printf "\eP\e]%s\007\e\\" "$argv"
+      else
+          printf "\e]%s\e\\" "$argv"
+      end
+  end
 
-function vterm_cmd --description 'Run an emacs command among the ones been defined in vterm-eval-cmds.'
-    set -l vterm_elisp ()
-    for arg in $argv
-        set -a vterm_elisp (printf '"%s" ' (string replace -a -r '([\\\\"])' '\\\\\\\\$1' $arg))
-    end
-    vterm_printf '51;E'(string join '' $vterm_elisp)
-end
+  function vterm_cmd --description 'Run an emacs command among the ones been defined in vterm-eval-cmds.'
+      set -l vterm_elisp ()
+      for arg in $argv
+          set -a vterm_elisp (printf '"%s" ' (string replace -a -r '([\\\\"])' '\\\\\\\\$1' $arg))
+      end
+      vterm_printf '51;E'(string join '' $vterm_elisp)
+  end
 
-if [ "$INSIDE_EMACS" = 'vterm' ]
-    function clear
-        vterm_printf "51;Evterm-clear-scrollback";
-        tput clear;
-    end
-end
+  if [ "$INSIDE_EMACS" = 'vterm' ]
+      function clear
+          vterm_printf "51;Evterm-clear-scrollback";
+          tput clear;
+      end
+  end
 
-function fish_title
-    hostname
-    echo ":"
-    pwd
-end
+  function fish_title
+      hostname
+      echo ":"
+      pwd
+  end
 
-function vterm_prompt_end;
-    vterm_printf '51;A'(whoami)'@'(hostname)':'(pwd)
-end
+  function vterm_prompt_end;
+      vterm_printf '51;A'(whoami)'@'(hostname)':'(pwd)
+  end
 
-functions --copy fish_prompt vterm_old_fish_prompt
+  functions --copy fish_prompt vterm_old_fish_prompt
 
-function fish_prompt --description 'Write out the prompt; do not replace this. Instead, put this at end of your file.'
-    # Remove the trailing newline from the original prompt. This is done
-    # using the string builtin from fish, but to make sure any escape codes
-    # are correctly interpreted, use %b for printf.
-    printf "%b" (string join "\n" (vterm_old_fish_prompt))
-    vterm_prompt_end
-end
+  function fish_prompt --description 'Write out the prompt; do not replace this. Instead, put this at end of your file.'
+      # Remove the trailing newline from the original prompt. This is done
+      # using the string builtin from fish, but to make sure any escape codes
+      # are correctly interpreted, use %b for printf.
+      printf "%b" (string join "\n" (vterm_old_fish_prompt))
+      vterm_prompt_end
+  end
 
-function find_file
-    set -q argv[1]; or set argv[1] "."
-    vterm_cmd find-file (realpath "$argv")
-end
+  function find_file
+      set -q argv[1]; or set argv[1] "."
+      vterm_cmd find-file (realpath "$argv")
+  end
 
-function say
-    vterm_cmd message "%s" "$argv"
-end
+  function say
+      vterm_cmd message "%s" "$argv"
+  end
 #+end_src
 
 #+RESULTS:
@@ -1261,81 +1240,81 @@ end
 ** =eshell= customization
 
 #+BEGIN_SRC emacs-lisp
-(use-package eshell-git-prompt
-  :ensure t
-  :config
-  (eshell-git-prompt-use-theme 'powerline))
+  (use-package eshell-git-prompt
+    :ensure t
+    :config
+    (eshell-git-prompt-use-theme 'powerline))
 
-(use-package eshell-syntax-highlighting
-  :after esh-mode
-  :ensure t
-  :config
-  ;; Enable in all Eshell buffers.
-  (eshell-syntax-highlighting-global-mode +1))
+  (use-package eshell-syntax-highlighting
+    :after esh-mode
+    :ensure t
+    :config
+    ;; Enable in all Eshell buffers.
+    (eshell-syntax-highlighting-global-mode +1))
 #+END_SRC
 ** Multi terminal emulation
 
 #+BEGIN_SRC emacs-lisp
-(use-package multi-term
-  :ensure t
-  :bind (("<f5>" . 'multi-term)
-         ("<C-next>" . 'multi-term-next)
-         ("<C-prior>" . 'multi-term-prev))
-  :custom
-  (multi-term-buffer-name "term"))
+  (use-package multi-term
+    :ensure t
+    :bind (("<f5>" . 'multi-term)
+           ("<C-next>" . 'multi-term-next)
+           ("<C-prior>" . 'multi-term-prev))
+    :custom
+    (multi-term-buffer-name "term"))
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
-(use-package xterm-color
-  :if nil
-  :config
-  (progn
-    (setq comint-output-filter-functions
-          (remove 'ansi-color-process-output comint-output-filter-functions))
+  (use-package xterm-color
+    :if nil
+    :config
+    (progn
+      (setq comint-output-filter-functions
+            (remove 'ansi-color-process-output comint-output-filter-functions))
 
-    (add-hook 'shell-mode-hook
-              (lambda () (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter nil t)))
+      (add-hook 'shell-mode-hook
+                (lambda () (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter nil t)))
 
-    ;; Also set TERM accordingly (xterm-256color)
+      ;; Also set TERM accordingly (xterm-256color)
 
-    ;; You can also use it with eshell (and thus get color output from system ls):
+      ;; You can also use it with eshell (and thus get color output from system ls):
 
-    (require 'eshell)
+      (require 'eshell)
 
-    (add-hook 'eshell-before-prompt-hook
-              (lambda ()
-                (setq xterm-color-preserve-properties t)))
+      (add-hook 'eshell-before-prompt-hook
+                (lambda ()
+                  (setq xterm-color-preserve-properties t)))
 
-    (add-to-list 'eshell-preoutput-filter-functions #'xterm-color-filter)
-    (setq eshell-output-filter-functions (remove 'eshell-handle-ansi-color eshell-output-filter-functions))
+      (add-to-list 'eshell-preoutput-filter-functions #'xterm-color-filter)
+      (setq eshell-output-filter-functions (remove 'eshell-handle-ansi-color eshell-output-filter-functions))
 
-    ;;  Don't forget to setenv TERM xterm-256color
-    ))
+      ;;  Don't forget to setenv TERM xterm-256color
+      ))
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
-(use-package ansi-color
-  :ensure t
-  :config
-  (progn
-    (defun init-colorize-compilation-buffer ()
-      (ansi-color-apply-on-region compilation-filter-start (point-max)))
-    (add-hook 'compilation-filter-hook 'init-colorize-compilation-buffer)))
+  (use-package ansi-color
+    :ensure t
+    :config
+    (progn
+      (defun init-colorize-compilation-buffer ()
+        (ansi-color-apply-on-region compilation-filter-start (point-max)))
+      (add-hook 'compilation-filter-hook 'init-colorize-compilation-buffer)))
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
-(use-package eterm-256color
-  :ensure t
-  :hook (term-mode . eterm-256color-mode))
+  (use-package eterm-256color
+    :ensure t
+    :hook (term-mode . eterm-256color-mode))
 #+END_SRC
 
 ** Bash completion
 
 #+BEGIN_SRC emacs-lisp
-(use-package bash-completion
-  :ensure t
-  :config
-  (bash-completion-setup))
+  (use-package bash-completion
+    :ensure t
+    :config
+    (bash-completion-setup))
 #+END_SRC
 
 ** Bash customization
@@ -1344,57 +1323,56 @@ end
 
 Put the following in =~/.profile=
 #+begin_src shell
-# Create user specific tmp
-if [ ! -e "$HOME/tmp" ]; then
-    rm -f "$HOME/tmp"
-    if [ ! -d "/tmp/$USER-tmp" ]; then
-        rm -rf "/tmp/$USER-tmp"
-        mkdir "/tmp/$USER-tmp"
-    fi
-    ln -s "/tmp/$USER-tmp" "$HOME/tmp"
-fi
+  # Create user specific tmp
+  if [ ! -e "$HOME/tmp" ]; then
+      rm -f "$HOME/tmp"
+      if [ ! -d "/tmp/$USER-tmp" ]; then
+          rm -rf "/tmp/$USER-tmp"
+          mkdir "/tmp/$USER-tmp"
+      fi
+      ln -s "/tmp/$USER-tmp" "$HOME/tmp"
+  fi
 #+end_src
 
 * Web
-
 ** =restclient=
 
 #+BEGIN_SRC emacs-lisp
-(use-package restclient
- :ensure t)
+  (use-package restclient
+   :ensure t)
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
-(use-package company-restclient
-  :ensure t
-  :after restclient
-  :config (progn
-            (add-to-list 'company-backend 'company-restclient)
-            (add-hook 'restclient-mode-hook #'company-mode-on)))
+  (use-package company-restclient
+    :ensure t
+    :after restclient
+    :config (progn
+              (add-to-list 'company-backend 'company-restclient)
+              (add-hook 'restclient-mode-hook #'company-mode-on)))
 #+END_SRC
 
 * File type
 ** =csv-mode=
 
 #+BEGIN_SRC emacs-lisp
-(use-package csv-mode
-  :ensure t
-  :config
-  (progn
-    (add-to-list 'auto-mode-alist '("\\.[Cc][Ss][Vv]\\'" . csv-mode))
-    ))
+  (use-package csv-mode
+    :ensure t
+    :config
+    (progn
+      (add-to-list 'auto-mode-alist '("\\.[Cc][Ss][Vv]\\'" . csv-mode))
+      ))
 #+END_SRC
 ** =yaml-mode=
 
 #+BEGIN_SRC emacs-lisp
-(use-package yaml-mode
- :ensure t)
+  (use-package yaml-mode
+   :ensure t)
 #+END_SRC
 ** =json-mode=
 
 #+BEGIN_SRC emacs-lisp
-(use-package json-mode
- :ensure t)
+  (use-package json-mode
+   :ensure t)
 #+END_SRC
 ** XML files
 
@@ -1415,8 +1393,8 @@ Function to pretty print the active region.
 ** log files
 
 #+BEGIN_SRC emacs-lisp
-(use-package logview
- :ensure t)
+  (use-package logview
+   :ensure t)
 #+END_SRC
 
 ** PDF files
@@ -1459,35 +1437,35 @@ Function to pretty print the active region.
 *** Org Babel Restclient
 
 #+BEGIN_SRC emacs-lisp
-(use-package ob-restclient
-  :ensure t
-  :config
-  (add-to-list 'org-babel-load-languages `(restclient . t)))
+  (use-package ob-restclient
+    :ensure t
+    :config
+    (add-to-list 'org-babel-load-languages `(restclient . t)))
 #+END_SRC
 
 *** =htmlize=
 
  #+BEGIN_SRC emacs-lisp
- (use-package htmlize
-  :ensure t
-  :defer t)
+   (use-package htmlize
+    :ensure t
+    :defer t)
  #+END_SRC
 *** =org-bullets=
 
 #+BEGIN_SRC emacs-lisp
-(use-package org-bullets
-  :ensure t
-  :after (org)
-  ;; :commands (org-bullets-mode)
-  :config
-  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+  (use-package org-bullets
+    :ensure t
+    :after (org)
+    ;; :commands (org-bullets-mode)
+    :config
+    (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 #+END_SRC
 *** =org-preview-html=
 
 #+BEGIN_SRC emacs-lisp
-(use-package org-preview-html
-  :ensure t
-  :after (org))
+  (use-package org-preview-html
+    :ensure t
+    :after (org))
 #+END_SRC
 
 *** =org-brain= DISABLED
@@ -1514,52 +1492,53 @@ Function to pretty print the active region.
 *** Present
 
 #+BEGIN_SRC emacs-lisp
-(use-package epresent
-  :ensure t
-  :after (org))
+  (use-package epresent
+    :ensure t
+    :after (org))
 
-(use-package org-present
-  :ensure t
-  :after (org)
-  :config
-  (eval-after-load "org-present"
-    '(progn
-       (add-hook 'org-present-mode-hook
-                 (lambda ()
-                   (org-present-big)
-                   (org-display-inline-images)
-                   (org-present-hide-cursor)
-                   (org-present-read-only)))
-       (add-hook 'org-present-mode-quit-hook
-                 (lambda ()
-                   (org-present-small)
-                   (org-remove-inline-images)
-                   (org-present-show-cursor)
-                   (org-present-read-write))))))
+  (use-package org-present
+    :ensure t
+    :after (org)
+    :config
+    (eval-after-load "org-present"
+      '(progn
+         (add-hook 'org-present-mode-hook
+                   (lambda ()
+                     (org-present-big)
+                     (org-display-inline-images)
+                     (org-present-hide-cursor)
+                     (org-present-read-only)))
+         (add-hook 'org-present-mode-quit-hook
+                   (lambda ()
+                     (org-present-small)
+                     (org-remove-inline-images)
+                     (org-present-show-cursor)
+                     (org-present-read-write))))))
 #+END_SRC
 
 *** Support Rust for Org-Babel
 
 Install =ob-rust=
 #+begin_src emacs-lisp
-(use-package ob-rust
-  :ensure t
-  :config
-  (add-to-list 'org-babel-load-languages `(rust . t)))
+  (use-package ob-rust
+    :ensure t
+    :config
+    (add-to-list 'org-babel-load-languages `(rust . t)))
 #+end_src
 
 Install prerequisites:
 #+begin_src shell
-cargo install cargo-script
+  cargo install cargo-script
 #+end_src
 
 *** Support for typescript
 
 #+begin_src emacs-lisp
-(use-package ob-typescript
-  :ensure t
-  :config
-  (add-to-list 'org-babel-load-languages `(typescript . t)))
+  (use-package ob-typescript
+    :ensure t
+    :after (typescript)
+    :config
+    (add-to-list 'org-babel-load-languages `(typescript . t)))
 #+end_src
 
 *** Hide blocks
@@ -1619,42 +1598,42 @@ the following lines:
 ** Markdown
 
  #+BEGIN_SRC emacs-lisp
- (use-package markdown-mode
-  :ensure t)
+   (use-package markdown-mode
+    :ensure t)
 
- (defun init-markdown-backward-inner-block ()
-   "Navigate back to the beginning of this block."
-   (markdown-backward-block)
-   (forward-line))
+   (defun init-markdown-backward-inner-block ()
+     "Navigate back to the beginning of this block."
+     (markdown-backward-block)
+     (forward-line))
 
- (defun init-markdown-forward-inner-block ()
-   "Navigate forward to the end of this block."
-   (markdown-forward-block)
-   (forward-line -1))
+   (defun init-markdown-forward-inner-block ()
+     "Navigate forward to the end of this block."
+     (markdown-forward-block)
+     (forward-line -1))
 
- (defun init-markdown-narrow-inner-block ()
-   "Make text inside current block visible.
- The current block is the one that contains point or follows point."
-   (interactive)
-   (let ((beginning-of-defun-function 'init-markdown-backward-inner-block)
-         (end-of-defun-function 'init-markdown-forward-inner-block))
-     (narrow-to-defun)))
+   (defun init-markdown-narrow-inner-block ()
+     "Make text inside current block visible.
+   The current block is the one that contains point or follows point."
+     (interactive)
+     (let ((beginning-of-defun-function 'init-markdown-backward-inner-block)
+           (end-of-defun-function 'init-markdown-forward-inner-block))
+       (narrow-to-defun)))
  #+END_SRC
 
 *** preview mode
 
 #+BEGIN_SRC emacs-lisp
-(use-package markdown-preview-mode
- :ensure t
- :defer t)
+  (use-package markdown-preview-mode
+   :ensure t
+   :defer t)
 #+END_SRC
 
 *** table of contents
 
 #+BEGIN_SRC emacs-lisp
-(use-package markdown-toc
- :ensure t
- :defer t)
+  (use-package markdown-toc
+   :ensure t
+   :defer t)
 #+END_SRC
 
 ** epub
@@ -1680,20 +1659,20 @@ the following lines:
 ** Emacs Lisp
 
 #+BEGIN_SRC emacs-lisp
-(use-package rainbow-mode
- :ensure t)
-(use-package rainbow-delimiters
-  :ensure t
-  :config
-  (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
-(use-package highlight-defined
-  :ensure t
-  :config
-  (add-hook 'emacs-lisp-mode-hook 'highlight-defined-mode))
-(use-package smartparens
-  :ensure t
-  :config
-  (require 'smartparens-config))
+  (use-package rainbow-mode
+   :ensure t)
+  (use-package rainbow-delimiters
+    :ensure t
+    :config
+    (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+  (use-package highlight-defined
+    :ensure t
+    :config
+    (add-hook 'emacs-lisp-mode-hook 'highlight-defined-mode))
+  (use-package smartparens
+    :ensure t
+    :config
+    (require 'smartparens-config))
 #+END_SRC
 
 *** Custom functions
@@ -1701,18 +1680,18 @@ the following lines:
 **** Comment next Sexp
 
 #+BEGIN_SRC emacs-lisp
-(defun init-comment-next-sexp (&optional ARG)
-  "Comment the next sexp.
-With ARG, comment the next ARG sexps.
-Negative ARG means comment backwards across N sexps.
-This command assumes point is not in a string or comment."
-  (interactive)
-  (let ((beg (point)))
-    (forward-list ARG)
-    (unless (eolp)
-      (electric-newline-and-maybe-indent))
-    (comment-region beg (point))
-    (indent-for-tab-command)))
+  (defun init-comment-next-sexp (&optional ARG)
+    "Comment the next sexp.
+  With ARG, comment the next ARG sexps.
+  Negative ARG means comment backwards across N sexps.
+  This command assumes point is not in a string or comment."
+    (interactive)
+    (let ((beg (point)))
+      (forward-list ARG)
+      (unless (eolp)
+        (electric-newline-and-maybe-indent))
+      (comment-region beg (point))
+      (indent-for-tab-command)))
 #+END_SRC
 
 ** =lsp-mode=
@@ -1773,40 +1752,40 @@ Installation copied from: [[https://emacs-lsp.github.io/lsp-mode/page/installati
 Install [[https://github.com/michaelklishin/cucumber.el][=feature-mode=]] to edit plain text user stories.
 
 #+BEGIN_SRC emacs-lisp
-(use-package feature-mode
- :ensure t)
+  (use-package feature-mode
+   :ensure t)
 #+END_SRC
 
 ** Javascript
 
 #+BEGIN_SRC emacs-lisp
-(use-package js2-mode
-  :ensure t
-  :config
-  (progn
-    (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
-    (add-hook 'js2-mode-hook #'js2-imenu-extras-mode)))
+  (use-package js2-mode
+    :ensure t
+    :config
+    (progn
+      (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
+      (add-hook 'js2-mode-hook #'js2-imenu-extras-mode)))
 
-(use-package typescript-mode
-  :ensure t)
+  (use-package typescript-mode
+    :ensure t)
 
-(use-package tide
-  :ensure t
-  :after (typescript-mode company flycheck)
-  :hook ((typescript-mode . tide-setup)
-         (typescript-mode . tide-hl-identifier-mode)
-         (before-save . tide-format-before-save)))
+  (use-package tide
+    :ensure t
+    :after (typescript-mode company flycheck)
+    :hook ((typescript-mode . tide-setup)
+           (typescript-mode . tide-hl-identifier-mode)
+           (before-save . tide-format-before-save)))
 
-(use-package ts-comint
-  :ensure t)
+  (use-package ts-comint
+    :ensure t)
 #+END_SRC
 ** Angular
 
 #+BEGIN_SRC emacs-lisp
-(use-package ng2-mode
-  :ensure t
-  :after (typescript-mode lsp)
-  :config (with-eval-after-load 'typescript-mode (add-hook 'typescript-mode-hook #'lsp)))
+  (use-package ng2-mode
+    :ensure t
+    :after (typescript-mode lsp)
+    :config (with-eval-after-load 'typescript-mode (add-hook 'typescript-mode-hook #'lsp)))
 #+END_SRC
 
 #+BEGIN_SRC shell
@@ -1814,48 +1793,48 @@ npm install -g @angular/language-service@next typescript  @angular/language-serv
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
-(setq lsp-clients-angular-language-server-command
-  '("node"
-    "/usr/local/lib/node_modules/@angular/language-server"
-    "--ngProbeLocations"
-    "/usr/local/lib/node_modules"
-    "--tsProbeLocations"
-    "/usr/local/lib/node_modules"
-    "--stdio"))
+  (setq lsp-clients-angular-language-server-command
+    '("node"
+      "/usr/local/lib/node_modules/@angular/language-server"
+      "--ngProbeLocations"
+      "/usr/local/lib/node_modules"
+      "--tsProbeLocations"
+      "/usr/local/lib/node_modules"
+      "--stdio"))
 #+END_SRC
 
 ** Rust
 
 #+BEGIN_SRC emacs-lisp
-(use-package rust-mode
-  :ensure t
-  :defer t
-  :if (init-command-exists-p 'cargo))
+  (use-package rust-mode
+    :ensure t
+    :defer t
+    :if (init-command-exists-p 'cargo))
 
-(use-package cargo
-  :ensure t
-  :defer t
-  :if (init-command-exists-p 'cargo)
-  :hook (rust-mode . cargo-minor-mode))
+  (use-package cargo
+    :ensure t
+    :defer t
+    :if (init-command-exists-p 'cargo)
+    :hook (rust-mode . cargo-minor-mode))
 
-(use-package flycheck-rust
-  :ensure t
-  :defer t
-  :if (init-command-exists-p 'cargo)
-  :config (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
+  (use-package flycheck-rust
+    :ensure t
+    :defer t
+    :if (init-command-exists-p 'cargo)
+    :config (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
 
-(use-package toml-mode
-  :ensure t
-  :defer t
-  :if (init-command-exists-p 'cargo))
+  (use-package toml-mode
+    :ensure t
+    :defer t
+    :if (init-command-exists-p 'cargo))
 #+END_SRC
 
 In order to enable the Rust language server, install rls, [[https://rust-analyzer.github.io/manual.html#rust-analyzer-language-server-binary][rust-analyzer]] and rust-src.
 
 #+begin_src shell
-rustup component add rls rust-analysis rust-src
-curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-linux -o ~/.local/bin/rust-analyzer
-chmod +x ~/.local/bin/rust-analyzer
+  rustup component add rls rust-analysis rust-src
+  curl -L https://github.com/rust-analyzer/rust-analyzer/releases/latest/download/rust-analyzer-linux -o ~/.local/bin/rust-analyzer
+  chmod +x ~/.local/bin/rust-analyzer
 #+end_src
 
 ** Java
@@ -1863,72 +1842,72 @@ chmod +x ~/.local/bin/rust-analyzer
 Nice package to automatically disassemble java .class files
 
 #+BEGIN_SRC emacs-lisp
-(use-package autodisass-java-bytecode
-  :ensure t
-  :defer t)
+  (use-package autodisass-java-bytecode
+    :ensure t
+    :defer t)
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
-(use-package lsp-java
-  :if (init-command-exists-p 'javac)
-  :after (lsp-mode lsp-ui)
-  :defer 3
-  :init
-  (progn
-    (require 'lsp-ui-flycheck)
-    (require 'lsp-ui-sideline)
-    (add-hook 'java-mode-hook #'lsp)
-    (add-hook 'java-mode-hook #'flycheck-mode)
-    (add-hook 'java-mode-hook #'company-mode)
-    (add-hook 'java-mode-hook (lambda () (lsp-ui-flycheck-enable t)))
-    (add-hook 'java-mode-hook #'lsp-ui-sideline-mode)))
+  (use-package lsp-java
+    :if (init-command-exists-p 'javac)
+    :after (lsp-mode lsp-ui)
+    :defer 3
+    :init
+    (progn
+      (require 'lsp-ui-flycheck)
+      (require 'lsp-ui-sideline)
+      (add-hook 'java-mode-hook #'lsp)
+      (add-hook 'java-mode-hook #'flycheck-mode)
+      (add-hook 'java-mode-hook #'company-mode)
+      (add-hook 'java-mode-hook (lambda () (lsp-ui-flycheck-enable t)))
+      (add-hook 'java-mode-hook #'lsp-ui-sideline-mode)))
 
-(use-package java-snippets
-  :ensure t
-  :if (init-command-exists-p 'javac)
-  :after (yasnippet)
-  :init (add-hook 'java-mode-hook #'yas-minor-mode))
+  (use-package java-snippets
+    :ensure t
+    :if (init-command-exists-p 'javac)
+    :after (yasnippet)
+    :init (add-hook 'java-mode-hook #'yas-minor-mode))
 
-;; (use-package dap-java :after (lsp-java))
-;; (use-package lsp-java-treemacs :after (treemacs))
+  ;; (use-package dap-java :after (lsp-java))
+  ;; (use-package lsp-java-treemacs :after (treemacs))
 #+END_SRC
 
 ** Kotlin
 
 #+BEGIN_SRC emacs-lisp
-(use-package kotlin-mode
-  :ensure t)
+  (use-package kotlin-mode
+    :ensure t)
 #+END_SRC
 
 ** Haskell
 
 #+BEGIN_SRC emacs-lisp
-(use-package haskell-mode
-  :if (init-command-exists-p 'stack))
+  (use-package haskell-mode
+    :if (init-command-exists-p 'stack))
 
-(use-package haskell-emacs
-  :if (init-command-exists-p 'stack))
+  (use-package haskell-emacs
+    :if (init-command-exists-p 'stack))
 
-(use-package intero
-  :if (init-command-exists-p 'stack)
-  :config
-  (add-hook 'haskell-mode-hook 'intero-mode))
+  (use-package intero
+    :if (init-command-exists-p 'stack)
+    :config
+    (add-hook 'haskell-mode-hook 'intero-mode))
 #+END_SRC
 
 ** SQL
 
 Automatically uppercase sql keywords:
 #+begin_src emacs-lisp
-(use-package sqlup-mode
-  :ensure t
-  :init
-  ;; Capitalize keywords in SQL mode
-  (add-hook 'sql-mode-hook 'sqlup-mode)
-  ;; Capitalize keywords in an interactive session (e.g. psql)
-  (add-hook 'sql-interactive-mode-hook 'sqlup-mode)
-  ;; Set a global keyword to use sqlup on a region
-  ;; (global-set-key (kbd "C-c u") 'sqlup-capitalize-keywords-in-region)
-)
+  (use-package sqlup-mode
+    :ensure t
+    :init
+    ;; Capitalize keywords in SQL mode
+    (add-hook 'sql-mode-hook 'sqlup-mode)
+    ;; Capitalize keywords in an interactive session (e.g. psql)
+    (add-hook 'sql-interactive-mode-hook 'sqlup-mode)
+    ;; Set a global keyword to use sqlup on a region
+    ;; (global-set-key (kbd "C-c u") 'sqlup-capitalize-keywords-in-region)
+  )
 #+end_src
 
 #+RESULTS:
@@ -1946,127 +1925,127 @@ Automatically uppercase sql keywords:
 ** Install =exwm=
 
 #+BEGIN_SRC emacs-lisp
-(use-package exwm
- :ensure t
- :if (display-graphic-p)
- :config
- (progn
-  ;; Turn on `display-time-mode' if you don't use an external bar.
-  (setq display-time-default-load-average nil)
-  (display-time-mode t)
+  (use-package exwm
+   :ensure t
+   :if (display-graphic-p)
+   :config
+   (progn
+    ;; Turn on `display-time-mode' if you don't use an external bar.
+    (setq display-time-default-load-average nil)
+    (display-time-mode t)
 
-  ;; You are strongly encouraged to enable something like `ido-mode' to alter
-  ;; the default behavior of 'C-x b', or you will take great pains to switch
-  ;; to or back from a floating frame (remember 'C-x 5 o' if you refuse this
-  ;; proposal however).
-  ;; You may also want to call `exwm-config-ido' later (see below).
-  ;; (ido-mode 1)
+    ;; You are strongly encouraged to enable something like `ido-mode' to alter
+    ;; the default behavior of 'C-x b', or you will take great pains to switch
+    ;; to or back from a floating frame (remember 'C-x 5 o' if you refuse this
+    ;; proposal however).
+    ;; You may also want to call `exwm-config-ido' later (see below).
+    ;; (ido-mode 1)
 
-  ;;;; Below are configurations for EXWM.
+    ;;;; Below are configurations for EXWM.
 
-  ;; Add paths (not required if EXWM is installed from GNU ELPA).
-  ;(add-to-list 'load-path "/path/to/xelb/")
-  ;(add-to-list 'load-path "/path/to/exwm/")
+    ;; Add paths (not required if EXWM is installed from GNU ELPA).
+    ;(add-to-list 'load-path "/path/to/xelb/")
+    ;(add-to-list 'load-path "/path/to/exwm/")
 
-  ;; Load EXWM.
-  (require 'exwm)
+    ;; Load EXWM.
+    (require 'exwm)
 
-  ;; Fix problems with Ido (if you use it).
-  (require 'exwm-config)
-  ;; (exwm-config-ido)
+    ;; Fix problems with Ido (if you use it).
+    (require 'exwm-config)
+    ;; (exwm-config-ido)
 
-  ;; Set the initial number of workspaces (they can also be created later).
-  (setq exwm-workspace-number 4)
+    ;; Set the initial number of workspaces (they can also be created later).
+    (setq exwm-workspace-number 4)
 
-  ;; All buffers created in EXWM mode are named "*EXWM*". You may want to
-  ;; change it in `exwm-update-class-hook' and `exwm-update-title-hook', which
-  ;; are run when a new X window class name or title is available.  Here's
-  ;; some advice on this topic:
-  ;; + Always use `exwm-workspace-rename-buffer' to avoid naming conflict.
-  ;; + For applications with multiple windows (e.g. GIMP), the class names of
-  ;;   all windows are probably the same.  Using window titles for them makes
-  ;;   more sense.
-  ;; In the following example, we use class names for all windows expect for
-  ;; Java applications and GIMP.
-  (add-hook 'exwm-update-class-hook
-            (lambda ()
-              (unless (or (string-prefix-p "sun-awt-X11-" exwm-instance-name)
+    ;; All buffers created in EXWM mode are named "*EXWM*". You may want to
+    ;; change it in `exwm-update-class-hook' and `exwm-update-title-hook', which
+    ;; are run when a new X window class name or title is available.  Here's
+    ;; some advice on this topic:
+    ;; + Always use `exwm-workspace-rename-buffer' to avoid naming conflict.
+    ;; + For applications with multiple windows (e.g. GIMP), the class names of
+    ;;   all windows are probably the same.  Using window titles for them makes
+    ;;   more sense.
+    ;; In the following example, we use class names for all windows expect for
+    ;; Java applications and GIMP.
+    (add-hook 'exwm-update-class-hook
+              (lambda ()
+                (unless (or (string-prefix-p "sun-awt-X11-" exwm-instance-name)
+                            (string= "gimp" exwm-instance-name))
+                  (exwm-workspace-rename-buffer exwm-class-name))))
+    (add-hook 'exwm-update-title-hook
+              (lambda ()
+                (when (or (not exwm-instance-name)
+                          (string-prefix-p "sun-awt-X11-" exwm-instance-name)
                           (string= "gimp" exwm-instance-name))
-                (exwm-workspace-rename-buffer exwm-class-name))))
-  (add-hook 'exwm-update-title-hook
-            (lambda ()
-              (when (or (not exwm-instance-name)
-                        (string-prefix-p "sun-awt-X11-" exwm-instance-name)
-                        (string= "gimp" exwm-instance-name))
-                (exwm-workspace-rename-buffer exwm-title))))
+                  (exwm-workspace-rename-buffer exwm-title))))
 
-  ;; Global keybindings can be defined with `exwm-input-global-keys'.
-  ;; Here are a few examples:
-  (setq exwm-input-global-keys
-        `(
-          ;; Bind "s-r" to exit char-mode and fullscreen mode.
-          ([?\s-r] . exwm-reset)
-          ;; Bind "s-w" to switch workspace interactively.
-          ([?\s-w] . exwm-workspace-switch)
-          ;; Bind "s-0" to "s-9" to switch to a workspace by its index.
-          ,@(mapcar (lambda (i)
-                      `(,(kbd (format "s-%d" i)) .
-                        (lambda ()
-                          (interactive)
-                          (exwm-workspace-switch-create ,i))))
-                    (number-sequence 0 9))
-          ;; Bind "s-&" to launch applications ('M-&' also works if the output
-          ;; buffer does not bother you).
-          ([?\s-&] . (lambda (command)
-    	           (interactive (list (read-shell-command "$ ")))
-    	           (start-process-shell-command command nil command)))
-          ;; Bind "s-<f2>" to "slock", a simple X display locker.
-          ([s-f2] . (lambda ()
-    	          (interactive)
-    	          (start-process "" nil "/usr/bin/slock")))))
+    ;; Global keybindings can be defined with `exwm-input-global-keys'.
+    ;; Here are a few examples:
+    (setq exwm-input-global-keys
+          `(
+            ;; Bind "s-r" to exit char-mode and fullscreen mode.
+            ([?\s-r] . exwm-reset)
+            ;; Bind "s-w" to switch workspace interactively.
+            ([?\s-w] . exwm-workspace-switch)
+            ;; Bind "s-0" to "s-9" to switch to a workspace by its index.
+            ,@(mapcar (lambda (i)
+                        `(,(kbd (format "s-%d" i)) .
+                          (lambda ()
+                            (interactive)
+                            (exwm-workspace-switch-create ,i))))
+                      (number-sequence 0 9))
+            ;; Bind "s-&" to launch applications ('M-&' also works if the output
+            ;; buffer does not bother you).
+            ([?\s-&] . (lambda (command)
+                   (interactive (list (read-shell-command "$ ")))
+                   (start-process-shell-command command nil command)))
+            ;; Bind "s-<f2>" to "slock", a simple X display locker.
+            ([s-f2] . (lambda ()
+                  (interactive)
+                  (start-process "" nil "/usr/bin/slock")))))
 
-  ;; To add a key binding only available in line-mode, simply define it in
-  ;; `exwm-mode-map'.  The following example shortens 'C-c q' to 'C-q'.
-  (define-key exwm-mode-map [?\C-q] #'exwm-input-send-next-key)
+    ;; To add a key binding only available in line-mode, simply define it in
+    ;; `exwm-mode-map'.  The following example shortens 'C-c q' to 'C-q'.
+    (define-key exwm-mode-map [?\C-q] #'exwm-input-send-next-key)
 
-  ;; The following example demonstrates how to use simulation keys to mimic
-  ;; the behavior of Emacs.  The value of `exwm-input-simulation-keys' is a
-  ;; list of cons cells (SRC . DEST), where SRC is the key sequence you press
-  ;; and DEST is what EXWM actually sends to application.  Note that both SRC
-  ;; and DEST should be key sequences (vector or string).
-  (setq exwm-input-simulation-keys
-        '(
-          ;; movement
-          ([?\C-b] . [left])
-          ([?\M-b] . [C-left])
-          ([?\C-f] . [right])
-          ([?\M-f] . [C-right])
-          ([?\C-p] . [up])
-          ([?\C-n] . [down])
-          ([?\C-a] . [home])
-          ([?\C-e] . [end])
-          ([?\M-v] . [prior])
-          ([?\C-v] . [next])
-          ([?\C-d] . [delete])
-          ([?\C-k] . [S-end delete])
-          ;; cut/paste.
-          ([?\C-w] . [?\C-x])
-          ([?\M-w] . [?\C-c])
-          ([?\C-y] . [?\C-v])
-          ;; search
-          ([?\C-s] . [?\C-f])))
+    ;; The following example demonstrates how to use simulation keys to mimic
+    ;; the behavior of Emacs.  The value of `exwm-input-simulation-keys' is a
+    ;; list of cons cells (SRC . DEST), where SRC is the key sequence you press
+    ;; and DEST is what EXWM actually sends to application.  Note that both SRC
+    ;; and DEST should be key sequences (vector or string).
+    (setq exwm-input-simulation-keys
+          '(
+            ;; movement
+            ([?\C-b] . [left])
+            ([?\M-b] . [C-left])
+            ([?\C-f] . [right])
+            ([?\M-f] . [C-right])
+            ([?\C-p] . [up])
+            ([?\C-n] . [down])
+            ([?\C-a] . [home])
+            ([?\C-e] . [end])
+            ([?\M-v] . [prior])
+            ([?\C-v] . [next])
+            ([?\C-d] . [delete])
+            ([?\C-k] . [S-end delete])
+            ;; cut/paste.
+            ([?\C-w] . [?\C-x])
+            ([?\M-w] . [?\C-c])
+            ([?\C-y] . [?\C-v])
+            ;; search
+            ([?\C-s] . [?\C-f])))
 
-  ;; You can hide the minibuffer and echo area when they're not used, by
-  ;; uncommenting the following line.
-  ;; (setq exwm-workspace-minibuffer-position 'bottom)
+    ;; You can hide the minibuffer and echo area when they're not used, by
+    ;; uncommenting the following line.
+    ;; (setq exwm-workspace-minibuffer-position 'bottom)
 
-  ;; RandR
-  (require 'exwm-randr)
-  (exwm-randr-enable)
+    ;; RandR
+    (require 'exwm-randr)
+    (exwm-randr-enable)
 
-  ;; System tray
-  (require 'exwm-systemtray)
-  (exwm-systemtray-enable)))
+    ;; System tray
+    (require 'exwm-systemtray)
+    (exwm-systemtray-enable)))
 #+END_SRC
 ** Register =Emacs EXWM= in gdm3
 
@@ -2138,126 +2117,123 @@ Install =gnome-flashback= and follow the instruction from: [[https://github.com/
 Start server if not running
 
 #+BEGIN_SRC emacs-lisp
-(load "server")
-(unless (server-running-p) (server-start))
+  (load "server")
+  (unless (server-running-p) (server-start))
 #+END_SRC
 
 * TODO Misc copied from old config
 
 #+BEGIN_SRC emacs-lisp
-(use-package popwin
-  :ensure t
-  :config
-  (popwin-mode 1))
+  (use-package popwin
+    :ensure t
+    :config
+    (popwin-mode 1))
 
-(use-package shell-pop
-  :ensure t
-  :config
-  (progn
-    (setq shell-pop-shell-type (quote ("eshell" "*eshell*" (lambda nil (eshell)))))
-    (setq shell-pop-universal-key "C-c t")))
+  (use-package shell-pop
+    :ensure t
+    :config
+    (progn
+      (setq shell-pop-shell-type (quote ("eshell" "*eshell*" (lambda nil (eshell)))))
+      (setq shell-pop-universal-key "C-c t")))
 
-;; (use-package origami)
+  ;; (use-package origami)
 
-;; (use-package customize-eshell
-;;   :load-path "lisp")
+  ;; (use-package customize-eshell
+  ;;   :load-path "lisp")
 
-(use-package 2048-game
- :ensure t)
+  (use-package 2048-game
+   :ensure t)
 
-(use-package anzu
- :ensure t)
+  (use-package anzu
+   :ensure t)
 
-(use-package visual-regexp
- :ensure t)
+  (use-package visual-regexp
+   :ensure t)
 
-(use-package package-lint
- :ensure t)
+  (use-package package-lint
+   :ensure t)
 
-(use-package pretty-mode
-  :ensure t
-  :config
-  (progn
-    ;; (global-pretty-mode t)
-    ;; (global-prettify-symbols-mode 1)
+  (use-package pretty-mode
+    :ensure t
+    :config
+    (progn
+      ;; (global-pretty-mode t)
+      ;; (global-prettify-symbols-mode 1)
 
-    ;; (pretty-deactivate-groups
-    ;;  '(:equality :ordering :ordering-double :ordering-triple
-    ;; 	       :arrows :arrows-twoheaded :punctuation
-    ;; 	       :logic :sets))
+      ;; (pretty-deactivate-groups
+      ;;  '(:equality :ordering :ordering-double :ordering-triple
+      ;; 	       :arrows :arrows-twoheaded :punctuation
+      ;; 	       :logic :sets))
 
-    (pretty-activate-groups
-     '(:sub-and-superscripts
-       :greek
-       :arithmetic-nary
-       :equality
-       :ordering
-       :ordering-double
-       :ordering-triple
-       :arrows
-       :arrows-twoheaded
-       :punctuation
-       :logic
-       :sets
-       ))))
+      (pretty-activate-groups
+       '(:sub-and-superscripts
+         :greek
+         :arithmetic-nary
+         :equality
+         :ordering
+         :ordering-double
+         :ordering-triple
+         :arrows
+         :arrows-twoheaded
+         :punctuation
+         :logic
+         :sets
+         ))))
 
-(use-package solaire-mode
-  :ensure t
-  :after (nord-theme doom-themes)
-  :config
-  (progn
-    (require 'solaire-mode)
-    ;; brighten buffers (that represent real files)
-    (add-hook 'after-change-major-mode-hook #'turn-on-solaire-mode)
-    ;; To enable solaire-mode unconditionally for certain modes:
-    (add-hook 'ediff-prepare-buffer-hook #'solaire-mode)
-    ;; ...if you use auto-revert-mode, this prevents solaire-mode from turning
-    ;; itself off every time Emacs reverts the file
-    (add-hook 'after-revert-hook #'turn-on-solaire-mode)
-    ;; highlight the minibuffer when it is activated:
-    (add-hook 'minibuffer-setup-hook #'solaire-mode-in-minibuffer)
-    ;; if the bright and dark background colors are the wrong way around, use this
-    ;; to switch the backgrounds of the `default` and `solaire-default-face` faces.
-    ;; This should be used *after* you load the active theme!
-    ;;
-    ;; NOTE: This is necessary for themes in the doom-themes package!
-    (setq solaire-mode-auto-swap-bg 't)))
+  (use-package solaire-mode
+    :ensure t
+    :after (nord-theme doom-themes)
+    :config
+    (progn
+      (require 'solaire-mode)
+      ;; brighten buffers (that represent real files)
+      (add-hook 'after-change-major-mode-hook #'turn-on-solaire-mode)
+      ;; To enable solaire-mode unconditionally for certain modes:
+      (add-hook 'ediff-prepare-buffer-hook #'solaire-mode)
+      ;; ...if you use auto-revert-mode, this prevents solaire-mode from turning
+      ;; itself off every time Emacs reverts the file
+      (add-hook 'after-revert-hook #'turn-on-solaire-mode)
+      ;; highlight the minibuffer when it is activated:
+      (add-hook 'minibuffer-setup-hook #'solaire-mode-in-minibuffer)
+      ;; if the bright and dark background colors are the wrong way around, use this
+      ;; to switch the backgrounds of the `default` and `solaire-default-face` faces.
+      ;; This should be used *after* you load the active theme!
+      ;;
+      ;; NOTE: This is necessary for themes in the doom-themes package!
+      (setq solaire-mode-auto-swap-bg 't)))
 
-(use-package dashboard
-  :ensure t
-  :config
-  (require 'dashboard)
-  (dashboard-setup-startup-hook)
-  (setq dashboard-items '((recents  . 10)
-                          (bookmarks . 10)
-                          (projects . 5)
-                          (agenda . 5)
-                          (registers . 5))))
+  (use-package dashboard
+    :ensure t
+    :config
+    (require 'dashboard)
+    (dashboard-setup-startup-hook)
+    (setq dashboard-items '((recents  . 10)
+                            (bookmarks . 10)
+                            (projects . 5)
+                            (agenda . 5)
+                            (registers . 5))))
 
-(use-package aggressive-indent
-  :ensure t
-  :config
-  (progn
-    (global-aggressive-indent-mode nil)
-    (add-to-list 'aggressive-indent-excluded-modes 'java-mode)))
+  (use-package aggressive-indent
+    :ensure t
+    :config
+    (progn
+      (global-aggressive-indent-mode nil)
+      (add-to-list 'aggressive-indent-excluded-modes 'java-mode)))
 
-;; (use-package sidebar
-;;   :straight (sidebar
-;;              :type git
-;;              :host github
-;;              :repo "sebastiencs/sidebar.el"))
+  ;; (use-package sidebar
+  ;;   :straight (sidebar
+  ;;              :type git
+  ;;              :host github
+  ;;              :repo "sebastiencs/sidebar.el"))
 
-(use-package guru-mode
-  :ensure t
-  :hook prog-mode)
-
-
-
+  (use-package guru-mode
+    :ensure t
+    :hook prog-mode)
 #+END_SRC
 
 * End
 
 #+BEGIN_SRC emacs-lisp
-(provide 'init)
-;;; init ends here
+  (provide 'init)
+   ;;; init ends here
 #+END_SRC
