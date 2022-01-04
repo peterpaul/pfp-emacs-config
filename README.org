@@ -136,6 +136,87 @@ Assuming that the code in custom-file is executed before the code ahead of this 
     :ensure t)
 #+END_SRC
 
+** Configure backups
+
+#+BEGIN_SRC emacs-lisp
+  ;; TODO now that we can have multiple emacs configurations, it might not make sense to
+  ;;      put this in 'user-emacs-directory' anymore. Consider something like '~/.emacs-backups'.
+  ;; TODO consider making this a config option.
+  (defvar init-backup-directory (concat user-emacs-directory "backups"))
+  (when (not (file-exists-p init-backup-directory))
+      (make-directory init-backup-directory t))
+  (setq backup-directory-alist `(("." . ,init-backup-directory)))
+  (setq make-backup-files t               ; backup of a file the first time it is saved.
+        backup-by-copying t               ; don't clobber symlinks
+        version-control t                 ; version numbers for backup files
+        delete-old-versions t             ; delete excess backup files silently
+        delete-by-moving-to-trash t
+        kept-old-versions 6               ; oldest versions to keep when a new numbered backup is made (default: 2)
+        kept-new-versions 9               ; newest versions to keep when a new numbered backup is made (default: 2)
+        auto-save-default t               ; auto-save every buffer that visits a file
+        auto-save-timeout 20              ; number of seconds idle time before auto-save (default: 30)
+        auto-save-interval 200            ; number of keystrokes between auto-saves (default: 300)
+        vc-make-backup-files t            ; also create backups for files that are under version control
+        )
+#+END_SRC
+
+*** Sensitive mode
+
+#+BEGIN_SRC emacs-lisp
+  (define-minor-mode init-sensitive-mode
+    "For sensitive files like password lists.
+  It disables backup creation and auto saving.
+
+  With no argument, this command toggles the mode.
+  Non-null prefix argument turns on the mode.
+  Null prefix argument turns off the mode."
+    ;; The initial value.
+    :init-value nil
+    ;; The indicator for the mode line.
+    :lighter " Sensitive"
+    ;; The minor mode bindings.
+    :keymap nil
+    (if (symbol-value init-sensitive-mode)
+        (progn
+          ;; disable backups
+          (set (make-local-variable 'backup-inhibited) t)
+          ;; disable auto-save
+          (if auto-save-default
+              (auto-save-mode -1))))
+                                          ;resort to default value of backup-inhibited
+    (kill-local-variable 'backup-inhibited)
+                                          ;resort to default auto save setting
+    (if auto-save-default
+        (auto-save-mode 1)))
+
+  ;; Automatically enable init-sensitive-mode for gpg files
+  (setq auto-mode-alist
+        (append '(("\\.gpg$" . init-sensitive-mode))
+                auto-mode-alist))
+#+END_SRC
+
+*** Create backups on every save
+
+#+BEGIN_SRC emacs-lisp
+  (defun init-force-backup-of-buffer ()
+    ;; Make a special "per session" backup at the first save of each
+    ;; emacs session.
+    (when (not buffer-backed-up)
+      ;; Override the default parameters for per-session backups.
+      (let ((backup-directory-alist '(("" . "~/.emacs.d/backup/per-session")))
+            (kept-new-versions 3))
+        (backup-buffer)))
+    ;; Make a "per save" backup on each save.  The first save results in
+    ;; both a per-session and a per-save backup, to keep the numbering
+    ;; of per-save backups consistent.
+    (let ((buffer-backed-up nil))
+      (backup-buffer)))
+
+  (add-hook 'before-save-hook  'init-force-backup-of-buffer)
+#+END_SRC
+
+*** TODO investidate =auto-save-mode=
+
 ** Install =esup= startup profiler
 
 #+BEGIN_SRC emacs-lisp
